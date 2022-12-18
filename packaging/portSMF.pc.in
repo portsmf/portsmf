@@ -5,7 +5,7 @@ libdir=${prefix}/@CMAKE_INSTALL_LIBDIR@
 Name: portSMF
 Description: Portmedia Simple Midi File library
 Requires: 
-Version: 0.1
+Version: @LIBRARY_VERSION@
 URL: https://github.com/tenacityteam/portsmf
 
 Libs: -L${libdir} -lportSMF
