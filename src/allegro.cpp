@@ -29,9 +29,6 @@
 // 4996 is warning against strcpy
 // 4267 is size_t to long warning
 #pragma warning(disable: 4311 4996 4267)
-#define DLLEXPORT __declspec(dllexport)
-#else
-#define DLLEXPORT
 #endif
 DLLEXPORT Alg_atoms symbol_table;
 Serial_read_buffer Alg_track::ser_read_buf; // declare the static variables
