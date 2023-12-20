@@ -1,3 +1,5 @@
+# PortSMF
+
 Portsmf is "Port Standard MIDI File", a cross-platform, C++ library
 for reading and writing Standard MIDI Files.
 
@@ -8,9 +10,11 @@ Building:
 PortSMF has no dependencies and uses the CMake build system.
 To build it, run:
 
+``` bash
 $ cmake -DCMAKE_INSTALL_PREFIX=/where/you/want/to/install/to -S . -B build
 $ cmake --build build --parallel number-of-cpu-cores
 $ cmake --install build
+```
 
 Features:
 
