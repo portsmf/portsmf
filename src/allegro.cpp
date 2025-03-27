@@ -20,7 +20,6 @@
 #include "algrd_internal.h"
 #include "algsmfrd_internal.h"
 
-#define STREQL(x, y) (strcmp(x, y) == 0)
 #define MAX(x, y) ((x) > (y) ? (x) : (y))
 #define ROUND(x) ((int) ((x) + 0.5))
 
@@ -84,7 +83,7 @@ Alg_attribute Alg_atoms::insert_attribute(Alg_attribute attr)
 {
     // should use hash algorithm
     for (int i = 0; i < len; i++) {
-        if (STREQL(attr, atoms[i])) {
+        if (!strcmp(attr, atoms[i])) {
             return atoms[i];
         }
     }
@@ -97,7 +96,7 @@ Alg_attribute Alg_atoms::insert_string(const char *name)
     char attr_type = name[strlen(name) - 1];
     for (int i = 0; i < len; i++) {
         if (attr_type == atoms[i][0] &&
-            STREQL(name, atoms[i] + 1)) {
+            !strcmp(name, atoms[i] + 1)) {
             return atoms[i];
         }
     }
@@ -210,7 +209,7 @@ Alg_parameters *Alg_parameters::remove_key(Alg_parameters **list,
                                            const char *name)
 {
     while (*list) {
-        if (STREQL((*list)->parm.attr_name(), name)) {
+        if (!strcmp((*list)->parm.attr_name(), name)) {
             Alg_parameters_ptr p = *list;
             *list = p->next;
             p->next = nullptr;
@@ -239,10 +238,10 @@ int Alg_event::get_type_code()
 {
     if (!is_note()) {
         const char* attr = get_attribute();
-        if (STREQL(attr, "gater")) {        // volume change
+        if (!strcmp(attr, "gater")) {        // volume change
             return ALG_GATE;
         }
-        if (STREQL(attr, "bendr")) {        // pitch bend
+        if (!strcmp(attr, "bendr")) {        // pitch bend
             return ALG_BEND;
         }
         if (strncmp(attr, "control", 7) == 0) {     // control change
@@ -253,19 +252,19 @@ int Alg_event::get_type_code()
             // attribute that begins with "control" is an ALG_CONTROL:
             return ALG_CONTROL;
         }
-        if (STREQL(attr, "programi")) {     // program change
+        if (!strcmp(attr, "programi")) {     // program change
             return ALG_PROGRAM;
         }
-        if (STREQL(attr, "pressurer")) {    // pressure change
+        if (!strcmp(attr, "pressurer")) {    // pressure change
             return ALG_PRESSURE;
         }
-        if (STREQL(attr, "keysigi")) {      // key signature
+        if (!strcmp(attr, "keysigi")) {      // key signature
             return ALG_KEYSIG;
         }
-        if (STREQL(attr, "timesig_numi")) { // time signature numerator
+        if (!strcmp(attr, "timesig_numi")) { // time signature numerator
             return ALG_TIMESIG_NUM;
         }
-        if (STREQL(attr, "timesig_deni")) { // time signature denominator
+        if (!strcmp(attr, "timesig_deni")) { // time signature denominator
             return ALG_TIMESIG_DEN;
         }
         return ALG_OTHER;

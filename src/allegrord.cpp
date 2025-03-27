@@ -10,7 +10,6 @@
 
 using std::string;
 
-#define streql(s1, s2) (strcmp(s1, s2) == 0)
 #define field_max 80
 
 class Alg_reader {
@@ -170,7 +169,7 @@ bool Alg_reader::parse()
         if (line_parser.peek() == '#') {
             // look for #track
             line_parser.get_nonspace_quoted(field);
-            if (streql(field.c_str(), "#track")) {
+            if (!strcmp(field.c_str(), "#track")) {
                 line_parser.get_nonspace_quoted(field); // number
                 field.insert(0, " "); // need char at beginning because
                 // parse_int ignores the first character of the argument
@@ -199,7 +198,7 @@ bool Alg_reader::parse()
                     update->parameter.s = heapify(field.c_str());
                     seq->add_event(update, track_num);
                 }
-            } else if (streql(field.c_str(), "#offset")) {
+            } else if (!strcmp(field.c_str(), "#offset")) {
                 if (offset_found) {
                     parse_error(field, 0, "#offset specified twice");
                 }
@@ -600,7 +599,7 @@ double Alg_reader::parse_loud(string &field)
         string dyn = field.substr(1);
         transform(dyn.begin(), dyn.end(), dyn.begin(), ::toupper);
         for (int i = 0; loud_lookup[i].str; i++) {
-            if (streql(loud_lookup[i].str, dyn.c_str())) {
+            if (!strcmp(loud_lookup[i].str, dyn.c_str())) {
                 return static_cast<double>(loud_lookup[i].val);
             }
         }
@@ -712,11 +711,11 @@ bool Alg_reader::parse_val(Alg_parameter_ptr param, string &s, int i)
         string r = s.substr(i + 1, len - i - 2);
         param->a = symbol_table.insert_string(r.c_str());
     } else if (param->attr_type() == 'l') {
-        if (streql(s.c_str() + i, "true") ||
-            streql(s.c_str() + i, "t")) {
+        if (!strcmp(s.c_str() + i, "true") ||
+            !strcmp(s.c_str() + i, "t")) {
             param->l = true;
-        } else if (streql(s.c_str() + i, "false") ||
-                   streql(s.c_str() + i, "nil")) {
+        } else if (!strcmp(s.c_str() + i, "false") ||
+                   !strcmp(s.c_str() + i, "nil")) {
             param->l = false;
         } else {
             return false;
