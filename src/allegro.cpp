@@ -757,13 +757,6 @@ Alg_event_ptr &Alg_event_list::operator [](int i)
     return events[i];
 }
 
-
-Alg_event_list::~Alg_event_list()
-{
-    // note that the events contained in the list are not destroyed
-}
-
-
 void Alg_event_list::set_start_time(Alg_event *event, double t)
 {
     // For Alg_event_list, find the owner and do the update there
