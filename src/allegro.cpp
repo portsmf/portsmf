@@ -56,9 +56,7 @@ void Alg_atoms::expand()
     Alg_attribute *new_atoms = new Alg_attribute[maxlen];
     // now do copy
     memcpy(new_atoms, atoms, len * sizeof(Alg_attribute));
-    if (atoms) {
-        delete[] atoms;
-    }
+    delete[] atoms;
     atoms = new_atoms;
 }
 
@@ -672,9 +670,7 @@ void Alg_events::expand()
     Alg_event_ptr *new_events = new Alg_event_ptr[maxlen];
     // now do copy
     memcpy(new_events, events, len * sizeof(Alg_event_ptr));
-    if (events) {
-        delete[] events;
-    }
+    delete[] events;
     events = new_events;
 }
 
@@ -737,9 +733,7 @@ Alg_events::~Alg_events()
 {
     assert(!in_use);
     // individual events are not deleted, only the array
-    if (events) {
-        delete[] events;
-    }
+    delete[] events;
 }
 
 
@@ -813,9 +807,7 @@ void Alg_beats::expand()
     Alg_beat_ptr new_beats = new Alg_beat[maxlen];
     // now do copy
     memcpy(new_beats, beats, len * sizeof(Alg_beat));
-    if (beats) {
-        delete[] beats;
-    }
+    delete[] beats;
     beats = new_beats;
 }
 
@@ -2069,9 +2061,7 @@ void Alg_time_sigs::expand()
     Alg_time_sig_ptr new_time_sigs = new Alg_time_sig[maxlen];
     // now do copy
     memcpy(new_time_sigs, time_sigs, len * sizeof(Alg_time_sig));
-    if (time_sigs) {
-       delete[] time_sigs;
-    }
+   delete[] time_sigs;
     time_sigs = new_time_sigs;
 }
 
@@ -2660,9 +2650,7 @@ void Alg_tracks::expand_to(int new_max)
     Alg_track_ptr *new_tracks = new Alg_track_ptr[maxlen];
     // now do copy
     memcpy(new_tracks, tracks, len * sizeof(Alg_track_ptr));
-    if (tracks) {
-        delete[] tracks;
-    }
+    delete[] tracks;
     tracks = new_tracks;
 }
 
@@ -2721,9 +2709,7 @@ void Alg_tracks::reset()
         //       this, tracks[i]);
         delete tracks[i];
     }
-    if (tracks) {
-        delete[] tracks;
-    }
+    delete[] tracks;
     tracks = nullptr;
     len = 0;
     maxlen = 0;
@@ -2745,9 +2731,7 @@ void Alg_iterator::expand_to(int new_max)
     // now do copy
     memcpy(new_pending_events, pending_events,
            len * sizeof(Alg_pending_event));
-    if (pending_events) {
-        delete[] pending_events;
-    }
+    delete[] pending_events;
     pending_events = new_pending_events;
 }
 
@@ -2758,15 +2742,6 @@ void Alg_iterator::expand()
     maxlen += (maxlen >> 2); // add 25%
     expand_to(maxlen);
 }
-
-
-Alg_iterator::~Alg_iterator()
-{
-    if (pending_events) {
-        delete[] pending_events;
-    }
-}
-
 
 /* in the heap, the children of N are (N+1)*2 and (N+1)*2-1, so
  * the parent of N is (N+1)/2-1. This would be easier if arrays

@@ -92,9 +92,7 @@ public:
         for (int i = 0; i < len; i++) {
             delete atoms[i];
         }
-        if (atoms) {
-            delete[] atoms;
-        }
+        delete[] atoms;
     }
     //! insert/lookup an atttribute
     Alg_attribute insert_attribute(Alg_attribute attr);
@@ -359,9 +357,7 @@ public:
     //! events themselves
     virtual ~Alg_events();
     void set_events(Alg_event_ptr *e, long l, long m) {
-        if (events) {
-            delete[] events;
-        }
+        delete[] events;
         events = e; len = l; maxlen = m;
     }
     //! for use by Alg_track and Alg_seq
@@ -477,11 +473,7 @@ public:
         beats[0].beat = 0;
         len = 1;
     }
-    ~Alg_beats() {
-        if (beats) {
-            delete[] beats;
-        }
-    }
+    ~Alg_beats() { delete[] beats; }
     void insert(long i, Alg_beat_ptr beat);
 } *Alg_beats_ptr;
 
@@ -628,11 +620,7 @@ typedef class Serial_write_buffer: public Serial_buffer {
     //! This destructor will only run when the program exits, which will only
     //! add overhead to the exit process, but it will eliminate an incorrect
     //! report of memory leakage from automation that doesn't know better. -RBD
-    ~Serial_write_buffer() override {
-        if (buffer) {
-            delete[] buffer;
-        }
-    }
+    ~Serial_write_buffer() override { delete[] buffer; }
     void init_for_write() { ptr = buffer; }
     //! store_long writes a long at a given offset
     void store_long(long offset, long value) {
@@ -927,11 +915,7 @@ public:
         assert(i >= 0 && i < len);
         return time_sigs[i];
     }
-    ~Alg_time_sigs() {
-        if (time_sigs) {
-            delete[] time_sigs;
-        }
-    }
+    ~Alg_time_sigs() { delete[] time_sigs; }
     void show();
     long length() { return len; }
     int find_beat(double beat);
@@ -1017,6 +1001,7 @@ private:
     bool remove_next(Alg_events_ptr &events, long &index, bool &note_on,
                      void *&cookie, double &offset, double &time);
 public:
+    ~Alg_iterator() { delete[] pending_events; }
     bool note_off_flag; //!< remembers if we are iterating over note-off
                         //!< events as well as note-on and update events
     long length() { return len; }
@@ -1035,7 +1020,7 @@ public:
     //! sequence to be included in the iteration unless you call begin()
     //! (see below).
     void begin_seq(Alg_seq_ptr s, void *cookie = nullptr, double offset = 0.0);
-    ~Alg_iterator();
+
     //! Prepare to enumerate events in order. If note_off_flag is true, then
     //! iteration_next will merge note-off events into the sequence. If you
     //! call begin(), you should not normally call begin_seq(). See above.
