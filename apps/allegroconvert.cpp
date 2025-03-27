@@ -6,7 +6,6 @@
 */
 
 #include <cstring>
-#include <fstream>
 #include "allegro.h"
 
 

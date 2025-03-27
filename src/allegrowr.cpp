@@ -5,7 +5,6 @@
 #include <fstream>
 #include <iomanip>
 #include <string>
-#include "memory.h"
 #include "strparse.h"
 #include "allegro.h"
 

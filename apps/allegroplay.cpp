@@ -1,16 +1,8 @@
-
-//#include "stdlib.h"
-//#include "stdio.h"
-//#include "memory.h"
-//#include "assert.h"
 #include <cstring>
-#include <fstream>
 #include "allegro.h"
 #include "mfmidi.h"
 #include "portmidi.h"
 #include "seq2midi.h"
-//#include "string.h"
-//#include "strparse.h"
 
 #ifdef WIN32
 #include "crtdbg.h" // for memory allocation debugging

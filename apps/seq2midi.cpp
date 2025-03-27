@@ -2,7 +2,6 @@
 // the allegro code
 
 #include <cstring>
-#include <fstream>
 #include "allegro.h"
 #include "porttime.h"
 #include "portmidi.h"

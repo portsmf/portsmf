@@ -3,7 +3,6 @@
 
 #include <cassert>
 #include <cstring>
-#include <fstream>
 #include "allegro.h"
 #include "algsmfrd_internal.h"
 #include "mfmidi.h"
