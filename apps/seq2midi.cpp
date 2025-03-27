@@ -1,6 +1,8 @@
 // seq2midi.cpp -- simple sequence player, intended to help test/demo
 // the allegro code
 
+#include <algorithm>
+#include <cmath>
 #include <cstring>
 #include "allegro.h"
 #include "porttime.h"
@@ -8,8 +10,6 @@
 #include "midicode.h"
 
 using namespace std;
-
-#define ROUND(x) (int) ((x)+0.5)
 
 
 double time_elapsed()
@@ -23,7 +23,7 @@ void wait_until(double time)
     // print "." to stdout while waiting
     static double last_time = 0.0;
     double now = time_elapsed();
-    if (now < last_time) last_time = now;
+    last_time = std::min(now, last_time);
     while (now < time) {
         Pt_Sleep(1);
         now = time_elapsed();
@@ -44,10 +44,8 @@ void midi_note_on(PortMidiStream *midi, double when, int chan, int key, int loud
 {
     unsigned long timestamp = (unsigned long) (when * 1000);
     chan = chan & 15;
-    if (key > 127) key = 127;
-    if (key < 0) key = 0;
-    if (loud > 127) loud = 127;
-    if (loud < 0) loud = 0;
+    key = std::clamp(key, 0, 127);
+    loud = std::clamp(loud, 0, 127);
     unsigned long data = Pm_Message(0x90 + chan, key, loud);
     Pm_WriteShort(midi, timestamp, data);
 }
@@ -58,8 +56,7 @@ static void midi_channel_message_2(PortMidiStream *midi, double when,
 {
     unsigned long timestamp = (unsigned long) (when * 1000);
     chan = chan & 15;
-    if (data > 127) data = 127;
-    if (data < 0) data = 0;
+    data = std::clamp(data, 0, 127);
     unsigned long msg = Pm_Message(status + chan, data, 0);
     Pm_WriteShort(midi, timestamp, msg);
 }
@@ -70,10 +67,8 @@ static void midi_channel_message(PortMidiStream *midi, double when,
 {
     unsigned long timestamp = (unsigned long) (when * 1000);
     chan = chan & 15;
-    if (data > 127) data = 127;
-    if (data < 0) data = 0;
-    if (data2 > 127) data2 = 127;
-    if (data2 < 0) data2 = 0;
+    data = std::clamp(data, 0, 127);
+    data2 = std::clamp(data, 0, 127);
     unsigned long msg = Pm_Message(status + chan, data, data2);
     Pm_WriteShort(midi, timestamp, msg);
 }
@@ -96,9 +91,8 @@ void send_midi_update(Alg_update_ptr u, PortMidiStream *midi)
                                  (int) (u->get_real_value() * 127));
         }
     } else if (u->get_attribute() == bend_attr) {
-        int bend = ROUND((u->get_real_value() + 1) * 8192);
-        if (bend > 8191) bend = 8191;
-        if (bend < 0) bend = 0;
+        int bend = std::lround((u->get_real_value() + 1) * 8192);
+        bend = std::clamp(bend, 0, 8191);
         midi_channel_message(midi, u->time, MIDI_BEND, u->chan, 
                              bend >> 7, bend & 0x7F);
     } else if (u->get_attribute() == program_attr) {
@@ -107,7 +101,7 @@ void send_midi_update(Alg_update_ptr u, PortMidiStream *midi)
     } else if (strncmp("control", u->get_attribute(), 7) == 0 &&
                u->get_update_type() == 'r') {
         int control = atoi(u->get_attribute() + 7);
-        int val = ROUND(u->get_real_value() * 127);
+        int val = std::lround(u->get_real_value() * 127);
         midi_channel_message(midi, u->time, MIDI_CTRL, u->chan, control, val);
     }
 }

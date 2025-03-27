@@ -1,5 +1,7 @@
 //! \file allegrosmfwr.cpp -- Allegro Standard Midi File Write
 
+#include <algorithm>
+#include <cmath>
 #include <cstring>
 #include <fstream>
 #include "allegro.h"
@@ -70,7 +72,6 @@ private:
     void write_32bit(int num);
 };
 
-#define ROUND(x) (int) ((x)+0.5)
 
 Alg_smf_write::Alg_smf_write(Alg_seq_ptr a_seq)
 {
@@ -299,13 +300,8 @@ void Alg_smf_write::write_update(Alg_update_ptr update)
         out_file->put(0xC0 + to_midi_channel(update->chan));
         write_data(update->parameter.i);
     } else if (!strcmp(name, "bendr")) {
-        int temp = ROUND(0x2000 * (update->parameter.r + 1));
-        if (temp > 0x3fff) {
-            temp = 0x3fff; // 14 bits maximum
-        }
-        if (temp < 0) {
-            temp = 0;
-        }
+        int temp = std::lround(0x2000 * (update->parameter.r + 1));
+        temp = std::clamp(temp, 0, 0x3fff); // 14 bits maximum
         int c1 = temp & 0x7F; // low 7 bits
         int c2 = temp >> 7;   // high 7 bits
         write_delta(update->time);
@@ -315,7 +311,7 @@ void Alg_smf_write::write_update(Alg_update_ptr update)
     } else if (!strncmp(name, "control", 7) &&
                update->parameter.attr_type() == 'r') {
         int ctrlnum = atoi(name + 7);
-        int val = ROUND(update->parameter.r * 127);
+        int val = std::lround(update->parameter.r * 127);
         write_delta(update->time);
         out_file->put(0xB0 + to_midi_channel(update->chan));
         write_data(ctrlnum);
@@ -437,7 +433,7 @@ void Alg_smf_write::write_update(Alg_update_ptr update)
 // quarter ticks. By scheduling with -1, note-offs should get dispatched
 // first. Note that TICK_TIME only determines the order of events, so
 // it is ok to change units from beats to ticks, saving a divide.
-#define TICK_TIME(t, o) (ROUND((t) * division) + 0.25 * (o))
+#define TICK_TIME(t, o) (std::round((t) * division) + 0.25 * (o))
 
 void Alg_smf_write::write_track(int i)
 {
@@ -527,12 +523,12 @@ void Alg_smf_write::write_tempo_change(int i)
     if (i < seq->get_time_map()->beats.len - 1) {
         tempo = 1000000 * ((b[i+1].time - b[i].time) /
                            (b[i+1].beat - b[i].beat));
-        divs = ROUND(b[i].beat * division);
-        write_tempo(divs, ROUND(tempo));
+        divs = std::lround(b[i].beat * division);
+        write_tempo(divs, std::lround(tempo));
     } else if (seq->get_time_map()->last_tempo_flag) { // write the final tempo
-        divs = ROUND(division * b[i].beat);
+        divs = std::lround(division * b[i].beat);
         tempo = (1000000.0 / seq->get_time_map()->last_tempo);
-        write_tempo(divs, ROUND(tempo));
+        write_tempo(divs, std::lround(tempo));
     }
 }
 
@@ -545,8 +541,8 @@ void Alg_smf_write::write_time_signature(int i)
     out_file->put('\xFF');
     out_file->put('\x58');  // time signature
     out_file->put('\x04');     // length of message
-    out_file->put(ROUND(ts[i].num));
-    int den = ROUND(ts[i].den);
+    out_file->put(std::lround(ts[i].num));
+    int den = std::lround(ts[i].den);
     int den_byte = 0;
     while (den > 1) { // compute the log2 of denominator
         den_byte++;
@@ -630,7 +626,7 @@ void Alg_smf_write::write_32bit(int num)
 void Alg_smf_write::write_delta(double event_time)
 {
     // divisions is ideal absolute time in divisions
-    long divisions = ROUND(division * event_time);
+    long divisions = std::lround(division * event_time);
     long delta_divs = divisions - previous_divs;
     write_varinum(delta_divs);
     previous_divs = divisions;
@@ -639,9 +635,7 @@ void Alg_smf_write::write_delta(double event_time)
 
 void Alg_smf_write::write_varinum(int value)
 {
-    if (value < 0) {
-        value = 0;//this line should not have to be here!
-    }
+    value = std::max(value, 0); // this line should not have to be here!
     int buffer;
 
     buffer = value & 0x7f;

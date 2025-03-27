@@ -10,6 +10,7 @@
 04 apr 03 -- fixed bug in add_track that caused infinite loop
 */
 
+#include <algorithm>
 #include <cassert>
 #include <cmath>
 #include <cstdio>
@@ -19,9 +20,6 @@
 #include "allegro.h"
 #include "algrd_internal.h"
 #include "algsmfrd_internal.h"
-
-#define MAX(x, y) ((x) > (y) ? (x) : (y))
-#define ROUND(x) ((int) ((x) + 0.5))
 
 #if defined(_WIN32)
 // 4311 is type cast ponter to long warning
@@ -721,9 +719,7 @@ void Alg_events::append(Alg_event_ptr event)
     if (event->is_note()) {
         Alg_note_ptr note = (Alg_note_ptr) event;
         double note_off = note->time + note->dur;
-        if (note_off > last_note_off) {
-            last_note_off = note_off;
-        }
+        last_note_off = std::max(note_off, last_note_off);
     }
 }
 
@@ -1423,9 +1419,7 @@ void Serial_write_buffer::check_buffer(long needed)
             new_len = 1024;
         }
          // make sure new_len is as big as needed
-        if (needed > new_len) {
-            new_len = needed;
-        }
+        new_len = std::max(needed, new_len);
         char *new_buffer = new char[new_len]; // allocate space
         ptr = new_buffer + (ptr - buffer); // relocate ptr to new buffer
         if (len > 0) { // we had a buffer already
@@ -2177,7 +2171,7 @@ void Alg_time_sigs::cut(double start, double end, double dur)
         // due to another time signature, in which case we do not
         // need to insert anything.
         double measures = end / 4.0;
-        double imeasures = ROUND(measures);
+        double imeasures = std::round(measures);
         if (!within(measures, imeasures, ALG_EPS)) {
             // start is not on a barline, maybe add one here:
             double bar_loc = (static_cast<int>(measures) + 1) * 4.0;
@@ -2197,7 +2191,7 @@ void Alg_time_sigs::cut(double start, double end, double dur)
         Alg_time_sig &tsp = time_sigs[i - 1];
         double beats_per_measure = (tsp.num * 4) / tsp.den;
         double measures = (end - tsp.beat) / beats_per_measure;
-        int imeasures = ROUND(measures);
+        int imeasures = std::lround(measures);
         if (!within(measures, imeasures, ALG_EPS)) {
             // end is not on a measure, so we need to insert a time sig
             // to force a bar line at the first measure location after
@@ -2317,7 +2311,7 @@ void Alg_time_sigs::trim(double start, double end)
         // due to another time signature, in which case we do not
         // need to insert anything.
         double measures = start / 4.0;
-        double imeasures = ROUND(measures);
+        double imeasures = std::round(measures);
         if (!within(measures, imeasures, ALG_EPS)) {
             // start is not on a barline, maybe add one here:
             double bar_loc = (static_cast<int>(measures) + 1) * 4.0;
@@ -2336,7 +2330,7 @@ void Alg_time_sigs::trim(double start, double end)
         Alg_time_sig &tsp = time_sigs[i];
         double beats_per_measure = (tsp.num * 4) / tsp.den;
         double measures = (start - tsp.beat) / beats_per_measure;
-        int imeasures = ROUND(measures);
+        int imeasures = std::lround(measures);
         if (!within(measures, imeasures, ALG_EPS)) {
             // beat is not on a measure, so we need to insert a time sig
             // to force a bar line at the first measure location after
@@ -2532,7 +2526,7 @@ void Alg_time_sigs::paste(double start, Alg_seq *seq)
     // if diff_in_measures is not (approximately) integer, we need to
     // force a barline (time signature) after start + dur to maintain
     // the relationship between barliness and notes
-    if (!within(diff_in_measures, ROUND(diff_in_measures), ALG_EPS)) {
+    if (!within(diff_in_measures, std::round(diff_in_measures), ALG_EPS)) {
         // recall that old_bar_loc is shifted by dur
         insert(old_bar_loc, num_after_splice, den_after_splice);
     }
@@ -2585,7 +2579,7 @@ void Alg_time_sigs::insert_beats(double start, double dur)
     // insert a time signature to maintain bar positions if necessary
     double beats_per_measure = (tsnum * 4) / tsden;
     double measures = dur / beats_per_measure; // shift distance
-    int imeasures = ROUND(measures);
+    int imeasures = std::lround(measures);
     if (!within(measures, imeasures, ALG_EPS)) {
         // shift is not a whole number of measures, so we may need to insert
         // time signature after silence
@@ -2613,13 +2607,13 @@ double Alg_time_sigs::nearest_beat(double beat)
     // i is where we would insert time signature at beat
     // case 1: there is no time signature
     if (i == 0 && len == 0) {
-        return ROUND(beat);
+        return std::round(beat);
     // case 2: beat falls approximately on time signature
     } else if (i < len && within(time_sigs[i].beat, beat, ALG_EPS)) {
         return time_sigs[i].beat;
     // case 3: beat is after no time signature and before one
     } else if (i == 0) {
-        double trial_beat = ROUND(beat);
+        double trial_beat = std::round(beat);
         // it is possible that we rounded up past a time signature
         if (trial_beat > time_sigs[0].beat - ALG_EPS) {
             return time_sigs[0].beat;
@@ -2628,7 +2622,7 @@ double Alg_time_sigs::nearest_beat(double beat)
     }
     // case 4: beat is after some time signature
     double trial_beat = time_sigs[i - 1].beat +
-                        ROUND(beat - time_sigs[i - 1].beat);
+                        std::round(beat - time_sigs[i - 1].beat);
     // rounding may advance trial_beat past next time signature:
     if (i < len && trial_beat > time_sigs[i].beat - ALG_EPS) {
         return time_sigs[i].beat;
@@ -3048,9 +3042,8 @@ Alg_seq_ptr Alg_seq::cut(double start, double len, bool all)
     if (start > dur) {
         return nullptr; // nothing to cut
     }
-    if (start < 0) {
-        start = 0; // can't start before sequence starts
-    }
+    // can't start before sequence starts
+    start = std::max<double>(start, 0);
     if (start + len > dur) { // can't cut after end:
         len = dur - start;
     }
@@ -3067,7 +3060,7 @@ Alg_seq_ptr Alg_seq::cut(double start, double len, bool all)
         result->track_list.append(cut_track);
         // initially, result->last_note_off is zero. We want to know the
         // maximum over all cut_tracks, so compute that here:
-        result->last_note_off = MAX(result->last_note_off,
+        result->last_note_off = std::max(result->last_note_off,
                                     cut_track->last_note_off);
         // since we're moving to a new sequence, change the track's time_map
         result->track_list[i].set_time_map(map);
@@ -3158,9 +3151,8 @@ Alg_seq *Alg_seq::copy(double start, double len, bool all)
     if (start > get_dur()) {
         return nullptr; // nothing to copy
     }
-    if (start < 0) {
-        start = 0; // can't copy before sequence starts
-    }
+    // can't copy before sequence starts
+    start = std::max<double>(start, 0);
     if (start + len > get_dur()) { // can't copy after end:
         len = get_dur() - start;
     }
@@ -3176,7 +3168,7 @@ Alg_seq *Alg_seq::copy(double start, double len, bool all)
     for (int i = 0; i < tracks(); i++) {
         Alg_track_ptr copy = copy_track(i, start, len, all);
         result->track_list.append(copy);
-        result->last_note_off = MAX(result->last_note_off,
+        result->last_note_off = std::max(result->last_note_off,
                                     copy->last_note_off);
         // since we're copying to a new seq, change the track's time_map
         result->track_list[i].set_time_map(map);
@@ -3290,9 +3282,8 @@ void Alg_seq::clear(double start, double len, bool all)
     if (start > dur) {
         return; // nothing to cut
     }
-    if (start < 0) {
-        start = 0; // can't start before sequence starts
-    }
+    // can't start before sequence starts
+    start = std::max<double>(start, 0);
     if (start + len > dur) { // can't cut after end:
         len = dur - start;
     }
@@ -3505,9 +3496,8 @@ void Alg_seq::beat_to_measure(double beat, long *measure, double *m_beat,
     double prev_num = 4;
     double prev_den = 4;
 
-    if (beat < 0) {
-        beat = 0; // negative measures treated as zero
-    }
+    // negative measures treated as zero
+    beat = std::max<double>(beat, 0);
 
     for (tsx = 0; tsx < time_sig.length(); tsx++) {
         if (time_sig[tsx].beat <= beat) {
