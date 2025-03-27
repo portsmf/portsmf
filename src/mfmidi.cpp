@@ -527,7 +527,7 @@ Midifile_reader::Midifile_reader()
     Mf_skipinit = 0;
     Mf_toberead = 0;
 
-    Msgbuff = 0;      /* message buffer */
+    Msgbuff = nullptr;  /* message buffer */
     Msgsize = 0;        /* Size of currently allocated Msg */
     Msgindex = 0;       /* index of next available location in Msg */
 }
@@ -575,7 +575,7 @@ void Midifile_reader::msgenlarge()
     newmess = static_cast<unsigned char *>(Mf_malloc((sizeof(unsigned char) * Msgsize)));
 
     /* copy old message into larger new one */
-    if (oldmess != 0) {
+    if (oldmess != nullptr) {
         memcpy(newmess, oldmess, oldleng);
         Mf_free(oldmess, oldleng);
     }

@@ -7,8 +7,6 @@
 #include "allegro.h"
 #include "algsmfrd_internal.h"
 #include "mfmidi.h"
-#include "trace.h"
-
 
 typedef class Alg_note_list {
 public:

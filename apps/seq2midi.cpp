@@ -125,7 +125,7 @@ void seq2midi(Alg_seq &seq, PortMidiStream *midi)
     iterator.begin();
     bool note_on;
     Alg_event_ptr e = iterator.next(&note_on);
-    Pt_Start(1, NULL, NULL); // initialize time
+    Pt_Start(1, nullptr, nullptr); // initialize time
     while (e) {
         double next_time = (note_on ? e->time : e->get_end_time());
         wait_until(next_time);
@@ -156,8 +156,8 @@ void seq_play(Alg_seq &seq)
     // not take an input parameter, whereas for generality, PortMidi
     // passes in a void * so the time function can get some context.
     // It is safe to call Pt_Time with a parameter -- it will just be ignored.
-    if (Pm_OpenOutput(&mo, dev, NULL, 256, 
-                      (PmTimestamp (*)(void *))&Pt_Time, NULL, 100) == pmNoError) {
+    if (Pm_OpenOutput(&mo, dev, nullptr, 256, 
+                      (PmTimestamp (*)(void *))&Pt_Time, nullptr, 100) == pmNoError) {
         seq2midi(seq, mo);
         wait_until(time_elapsed() + 1);
         Pm_Close(mo);

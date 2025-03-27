@@ -1,10 +1,11 @@
 cmake_minimum_required(VERSION 3.1)
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 project(PortSMF VERSION 239.9999 LANGUAGES CXX)
 set(SOVERSION 1)
 set(LIBRARY_VERSION 1.0.${CMAKE_PROJECT_VERSION})
 
-set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_CXX_STANDARD 17)
 
 if(CMAKE_CXX_COMPILER_ID MATCHES "Clang"
    OR CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
@@ -55,7 +56,6 @@ install(FILES
   include/allegro.h
   include/mfmidi.h
   include/strparse.h
-  include/trace.h
   DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}/portsmf")
 
 # pkgconfig

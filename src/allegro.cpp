@@ -19,7 +19,6 @@
 #include "allegro.h"
 #include "algrd_internal.h"
 #include "algsmfrd_internal.h"
-// #include "trace.h" -- only needed for debugging
 
 #define STREQL(x, y) (strcmp(x, y) == 0)
 #define MAX(x, y) ((x) > (y) ? (x) : (y))

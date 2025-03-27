@@ -52,8 +52,7 @@
 #define ALLEGRO_H
 #include <cassert>
 #include <cstring>
-#include <istream>
-#include <ostream>
+#include <iostream>
 
 #define ALG_EPS 0.000001 //!< epsilon
 #define ALG_DEFAULT_BPM 100.0 //!< default tempo

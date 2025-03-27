@@ -70,7 +70,7 @@ int main(int argc, char *argv[])
     bool flatten_flag = false;
     double tempo = 60.0; // default is used for -f (flatten)
     bool tempo_flag = false;
-    char *ext = NULL;
+    char *ext = nullptr;
 
     int i = 1;
     while (i < argc - 1) {
