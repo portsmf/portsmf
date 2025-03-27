@@ -51,6 +51,7 @@
 #ifndef ALLEGRO_H
 #define ALLEGRO_H
 #include <cassert>
+#include <cstdint>
 #include <cstring>
 #include <iostream>
 
@@ -130,7 +131,7 @@ public:
     union {
         double r;//!< real
         const char *s; //!< string
-        long i;  //!< integer
+        int32_t i;  //!< integer
         bool l;  //!< logical
         const char *a; //!< symbol (atom)
     }; //!< anonymous union
@@ -170,7 +171,7 @@ public:
     //! insert string will copy string to heap
     static void insert_string(Alg_parameters **list, const char *name,
                               const char *s);
-    static void insert_integer(Alg_parameters **list, const char *name, long i);
+    static void insert_integer(Alg_parameters **list, const char *name, int32_t i);
     static void insert_logical(Alg_parameters **list, const char *name, bool l);
     static void insert_atom(Alg_parameters **list, const char *name,
                             const char *s);
@@ -230,7 +231,7 @@ public:
     void set_string_value(const char *attr, const char *value);
     void set_real_value(const char *attr, double value);
     void set_logical_value(const char *attr, bool value);
-    void set_integer_value(const char *attr, long value);
+    void set_integer_value(const char *attr, int32_t value);
     void set_atom_value(const char *attr, const char *atom);
 
     // Some note methods. These fail (via assert()) if this is not a note:
@@ -263,7 +264,7 @@ public:
     //! get the logical value
     bool get_logical_value(const char *attr, bool value = false);
     //! get the integer value
-    long get_integer_value(const char *attr, long value = 0);
+    long get_integer_value(const char *attr, int32_t value = 0);
     //! get the atom value
     const char *get_atom_value(const char *attr, const char *value = nullptr);
     void delete_attribute(const char *attr);   //!< delete an attribute/value pair
@@ -282,7 +283,7 @@ public:
         //!< Do not use after underlying Alg_seq is modified.
     double get_real_value();  //!< get the update's real value
     bool get_logical_value(); //!< get the update's logical value
-    long get_integer_value(); //!< get the update's integer value
+    int32_t get_integer_value(); //!< get the update's integer value
     const char *get_atom_value();   //!< get the update's atom value
         //!< Notes: Caller does not own the return value. Do not modify.
         //!< The return value's lifetime is forever.
@@ -560,18 +561,9 @@ public:
     //! to delete the buffer (owner might want to reuse it), so the destructor
     //! does nothing.
     ~Serial_read_buffer() override { }
-#if defined(_WIN32)
-#pragma warning(disable: 546) // cast to int is OK, we only want low 7 bits
-#pragma warning(disable: 4311) // type cast pointer to long warning
-#endif
     void get_pad() {
-        while (reinterpret_cast<long>(ptr) & 7) {
-            ptr++;
-        }
+        while (reinterpret_cast<uintptr_t>(ptr) & 7) { ptr++; }
     }
-#if defined(_WIN32)
-#pragma warning(default: 4311 546)
-#endif
     //! Prepare to read n bytes from buf. The caller must manage buf: it is
     //! valid until reading is finished, and it is caller's responsibility
     //! to free buf when it is no longer needed.
@@ -582,18 +574,18 @@ public:
     }
     char get_char() { return *ptr++; }
     void unget_chars(int n) { ptr -= n; } // undo n get_char() calls
-    long get_int32() {
-        long i = *(reinterpret_cast<long *>(ptr));
-        ptr += 4;
+    int32_t get_int32() {
+        const int32_t i = *(reinterpret_cast<int32_t *>(ptr));
+        ptr += sizeof(int32_t);
         return i;
     }
     float get_float() {
-        float f = *(reinterpret_cast<float *>(ptr));
-        ptr += 4;
+        const float f = *(reinterpret_cast<float *>(ptr));
+        ptr += sizeof(float);
         return f;
     }
     double get_double() {
-        double d = *(reinterpret_cast<double *>(ptr));
+        const double d = *(reinterpret_cast<double *>(ptr));
         ptr += sizeof(double);
         return d;
     }
@@ -620,12 +612,13 @@ typedef class Serial_write_buffer: public Serial_buffer {
     //! report of memory leakage from automation that doesn't know better. -RBD
     ~Serial_write_buffer() override { delete[] buffer; }
     void init_for_write() { ptr = buffer; }
-    //! store_long writes a long at a given offset
-    void store_long(long offset, long value) {
-        assert(offset <= get_posn() - 4);
-        long *loc = reinterpret_cast<long *>(buffer + offset);
-        *loc = value;
+    //! Writes an int32_t at a given offset
+    void store_int32(long offset, int32_t value) {
+        assert(offset <= static_cast<long>(get_posn() - sizeof(int32_t)));
+        *reinterpret_cast<int32_t *>(buffer + offset) = value;
     }
+    [[deprecated("Use store_int32() instead")]]
+    void store_long(long offset, long value) { store_int32(offset, static_cast<int32_t>(value)); }
     void check_buffer(long needed);
     void set_string(const char *s) {
         [[maybe_unused]] char *fence = buffer + len;
@@ -633,44 +626,25 @@ typedef class Serial_write_buffer: public Serial_buffer {
         // two brackets surpress a g++ warning, because this is an
         // assignment operator inside a test.
         while ((*ptr++ = *s++)) { assert(ptr < fence); }
-        // 4311 is type cast pointer to long warning
-        // 4312 is type cast long to pointer warning
-#if defined(_WIN32)
-#pragma warning(disable: 4311 4312)
-#endif
-        assert(reinterpret_cast<char *>(reinterpret_cast<long>(ptr + 7) & ~7) <= fence);
-#if defined(_WIN32)
-#pragma warning(default: 4311 4312)
-#endif
+        assert(reinterpret_cast<char *>(reinterpret_cast<uintptr_t>(ptr + 7) & ~7) <= fence);
         pad();
     }
-    void set_int32(long v) {
+    void set_int32(int32_t v) {
         *(reinterpret_cast<long *>(ptr)) = v;
-        ptr += 4;
+        ptr += sizeof(int32_t);
     }
     void set_double(double v) {
         *(reinterpret_cast<double *>(ptr)) = v;
-        ptr += 8;
+        ptr += sizeof(double);
     }
     void set_float(float v) {
         *(reinterpret_cast<float *>(ptr)) = v;
-        ptr += 4;
+        ptr += sizeof(float);
     }
-    void set_char(char v) {
-        *ptr++ = v;
-    }
-#if defined(_WIN32)
-#pragma warning(disable: 546) // cast to int is OK, we only want low 7 bits
-#pragma warning(disable: 4311) // type cast pointer to long warning
-#endif
+    void set_char(char v) { *ptr++ = v; }
     void pad() {
-        while (reinterpret_cast<long>(ptr) & 7) {
-            set_char(0);
-        }
+        while (reinterpret_cast<uintptr_t>(ptr) & 7) { set_char(0); }
     }
-#if defined(_WIN32)
-#pragma warning(default: 4311 546)
-#endif
     void *to_heap(long *len) {
         *len = get_posn();
         char *newbuf = new char[*len];

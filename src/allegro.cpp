@@ -15,6 +15,7 @@
 #include <cmath>
 #include <cstdio>
 #include <cstring>
+#include <cinttypes>
 #include <fstream>
 #include <stdexcept>
 #include "allegro.h"
@@ -124,7 +125,7 @@ void Alg_parameter::show()
         break;
     }
     case 'i': {
-        printf("%s:%ld", attr_name(), i);
+        printf("%s:%" PRId32, attr_name(), i);
         break;
     }
     case 'l': {
@@ -170,8 +171,7 @@ void Alg_parameters::insert_string(Alg_parameters **list, const char *name,
 }
 
 
-void Alg_parameters::insert_integer(Alg_parameters **list, const char *name,
-                                    long i)
+void Alg_parameters::insert_integer(Alg_parameters **list, const char *name, int32_t i)
 {
     Alg_parameters_ptr a = new Alg_parameters(*list);
     *list = a;
@@ -331,7 +331,7 @@ void Alg_event::set_logical_value(const char *a, bool value)
 }
 
 
-void Alg_event::set_integer_value(const char *a, long value)
+void Alg_event::set_integer_value(const char *a, int32_t value)
 {
     assert(a); // must be non-null
     Alg_attribute attr = symbol_table.insert_string(a);
@@ -484,7 +484,7 @@ bool Alg_event::get_logical_value(const char *a, bool value)
 }
 
 
-long Alg_event::get_integer_value(const char *a, long value)
+long Alg_event::get_integer_value(const char *a, int32_t value)
 {
     assert(is_note());
     assert(a);
@@ -569,7 +569,7 @@ bool Alg_event::get_logical_value()
 }
 
 
-long Alg_event::get_integer_value()
+int32_t Alg_event::get_integer_value()
 {
     assert(is_update());
     Alg_update* update = (Alg_update *) this;
@@ -1469,7 +1469,7 @@ void Alg_seq::serialize_seq()
         track(i)->serialize_track();
     }
     // do not include ALGS, include padding at end
-    ser_write_buf.store_long(length_offset, ser_write_buf.get_posn() - length_offset);
+    ser_write_buf.store_int32(length_offset, ser_write_buf.get_posn() - length_offset);
 }
 
 
@@ -1511,7 +1511,7 @@ void Alg_track::serialize_track()
                 parms = parms->next;
                 parm_num++;
             }
-            ser_write_buf.store_long(parm_num_offset, parm_num);
+            ser_write_buf.store_int32(parm_num_offset, parm_num);
         } else {
             assert(event->is_update());
             Alg_update *update = (Alg_update *) event;
@@ -1521,7 +1521,7 @@ void Alg_track::serialize_track()
         ser_write_buf.pad();
     }
     // write length, not including ALGT, including padding at end
-    ser_write_buf.store_long(length_offset, ser_write_buf.get_posn() - length_offset);
+    ser_write_buf.store_int32(length_offset, ser_write_buf.get_posn() - length_offset);
 }
 
 
@@ -1535,7 +1535,7 @@ void Alg_track::serialize_parameter(Alg_parameter *parm)
     ser_write_buf.pad();
     switch (parm->attr_type()) {
     case 'r': {
-        ser_write_buf.check_buffer(8);
+        ser_write_buf.check_buffer(sizeof(double));
         ser_write_buf.set_double(parm->r);
         break;
     }
@@ -1545,12 +1545,12 @@ void Alg_track::serialize_parameter(Alg_parameter *parm)
         break;
     }
     case 'i': {
-        ser_write_buf.check_buffer(4);
+        ser_write_buf.check_buffer(sizeof(int32_t));
         ser_write_buf.set_int32(parm->i);
         break;
     }
     case 'l': {
-        ser_write_buf.check_buffer(4);
+        ser_write_buf.check_buffer(sizeof(int32_t));
         ser_write_buf.set_int32(parm->l);
         break;
     }
