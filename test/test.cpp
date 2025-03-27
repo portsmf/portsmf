@@ -173,11 +173,11 @@ void test7()
 	seq->time_sig.insert(7, 5, 4);
 	seq->time_sig.insert(12, 4, 4);
 	double qtable[] = {0, 1, 3.999, 4, 4.001, 5, 7, 7.5, 12, 17, 17.25};
-	for (int i = 0; i < 11; i++) {
+	for (double i : qtable) {
 	    long m;
 		double b, n, d;
-	    seq->beat_to_measure(qtable[i], &m, &b, &n, &d);
-		printf("%g -> %ld + %g (%g/%g)\n", qtable[i], m, b, n, d);
+	    seq->beat_to_measure(i, &m, &b, &n, &d);
+		printf("%g -> %ld + %g (%g/%g)\n", i, m, b, n, d);
 	}
 }
 
@@ -251,11 +251,11 @@ void test10()
 	seq->set_time_sig(7.0, 5, 4);
 	seq->set_time_sig(12.0, 4, 4);
 	double btable[] = { 0.0, 4.0, 7.0, 12.0 };
-	for (int i = 0; i < 4; i++) {
+	for (double i : btable) {
 	    long m;
 		double b, n, d;
-	    seq->beat_to_measure(btable[i], &m, &b, &n, &d);
-		printf("%g -> %ld + %g (%g/%g)\n", btable[i], m, b, n, d);
+	    seq->beat_to_measure(i, &m, &b, &n, &d);
+		printf("%g -> %ld + %g (%g/%g)\n", i, m, b, n, d);
 	}
 }
 
