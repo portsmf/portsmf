@@ -1903,8 +1903,8 @@ void Alg_track::paste(double t, Alg_event_list *seq)
     } else { // make it match
         Alg_track_ptr tr = (Alg_track_ptr) seq;
         prev_units_are_seconds = tr->get_units_are_seconds();
-        if (units_are_seconds) tr->convert_to_seconds();
-        else tr->convert_to_beats();
+        if (units_are_seconds) { tr->convert_to_seconds(); }
+        else { tr->convert_to_beats(); }
     }
     double dur = (units_are_seconds ? seq->get_real_dur() :
                                       seq->get_beat_dur());
@@ -1971,8 +1971,7 @@ void Alg_track::clear(double t, double len, bool all)
             events[move_to] = event;
             // adjust times of events after t + len. This test is based
             // on the one in Alg_event::overlap() for consistency.
-            if (event->time > t + len - ALG_EPS && event->time > t)
-                event->time -= len;
+            if (event->time > t + len - ALG_EPS && event->time > t) { event->time -= len; }
             move_to++;
         }
     }
@@ -2507,7 +2506,7 @@ void Alg_time_sigs::paste(double start, Alg_seq *seq)
     // to eliminate any negative rounding error:
     int imeasures = static_cast<int>(std::max(measures, 0.0));
     double old_bar_loc = beat_after_splice + (imeasures * beats_per_measure);
-    if (old_bar_loc < start) old_bar_loc += beats_per_measure;
+    if (old_bar_loc < start) { old_bar_loc += beats_per_measure; }
     // now old_bar_loc is the original first bar position after start
     // Do similar calculation for position after end after the insertion:
     // beats_per_measure already calculated because signatures match

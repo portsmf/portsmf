@@ -10,8 +10,6 @@
 
 using std::string;
 
-#define field_max 80
-
 class Alg_reader {
 public:
     std::istream *file;
@@ -479,7 +477,7 @@ int Alg_reader::find_real_in(string &field, int n)
     // scans from offset n to the end of a real constant
     bool decimal = false;
     int len = field.length();
-    if (n < len && field[n] == '-') n += 1; // parse one minus sign
+    if (n < len && field[n] == '-') { n++; } // parse one minus sign
     for (int i = n; i < len; i++) {
         char c = field[i];
         if (!isdigit(c)) {

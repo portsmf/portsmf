@@ -41,9 +41,9 @@ int main(int argc, char *argv[])
     int i = 1; // scan the command line
     while (i < argc) {
         if (argv[i][0] == '-') {
-            if (argv[1][1] == 'm') midifile = true;
-            else if (argv[i][1] == 'a') allegrofile = true;
-            else if (argv[i][1] == 'n') interactive = false;
+            if (argv[1][1] == 'm') { midifile = true; }
+            else if (argv[i][1] == 'a') { allegrofile = true; }
+            else if (argv[i][1] == 'n') { interactive = false; }
         } else {
             filename = argv[i];
         }
@@ -55,11 +55,11 @@ int main(int argc, char *argv[])
 
     if (!midifile && !allegrofile) {
         int len = strlen(filename);
-        if (len < 4) print_help();    // no extension, need -m or -a
+        if (len < 4) { print_help(); } // no extension, need -m or -a
         char *ext = filename + len - 4;
-        if (strcmp(ext, ".mid") == 0) midifile = true;
-        else if (strcmp(ext, ".gro") == 0) allegrofile = true;
-        else print_help();
+        if (strcmp(ext, ".mid") == 0) { midifile = true; }
+        else if (strcmp(ext, ".gro") == 0) { allegrofile = true; }
+        else { print_help(); }
     }
     Alg_seq seq(filename, midifile);
 

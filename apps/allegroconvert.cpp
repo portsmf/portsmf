@@ -48,7 +48,7 @@ void process(Alg_seq_ptr seq, bool tempo_flag, double tempo,
         seq->convert_to_beats(); // preserve beats
     } else if (flatten_flag) {
         seq->convert_to_seconds(); // preserve timing
-    } else return;
+    } else { return; }
     // the following finishes both tempo and flatten processing...
     seq->get_time_map()->beats.len = 1; // remove contents of tempo map
     seq->get_time_map()->last_tempo = tempo / 60.0; // set the new fixed tempo
@@ -73,29 +73,29 @@ int main(int argc, char *argv[])
 
     int i = 1;
     while (i < argc - 1) {
-        if (argv[i][0] != '-') print_help();
-        if (argv[i][1] == 'm') midifile = true;
-        else if (argv[i][1] == 'a') allegrofile = true;
+        if (argv[i][0] != '-') { print_help(); }
+        if (argv[i][1] == 'm') { midifile = true; }
+        else if (argv[i][1] == 'a') { allegrofile = true; }
         else if (argv[i][1] == 't') {
             i++;
-            if (i >= argc - 1) print_help(); // expected tempo
+            if (i >= argc - 1) { print_help(); } // expected tempo
             tempo = atof(argv[i]);
             tempo_flag = true;
         } else if (argv[i][1] == 'f') {
             flatten_flag = true;
-        } else print_help();
+        } else { print_help(); }
         i++;
     }
     // Do not use both -t and -f:
-    if (tempo_flag & flatten_flag) print_help();
+    if (tempo_flag & flatten_flag) { print_help(); }
 
     int len = strlen(filename);
     if (!midifile && !allegrofile) {
-        if (len < 4) print_help();    // no extension, need -m or -a
+        if (len < 4) { print_help(); } // no extension, need -m or -a
         ext = filename + len - 4;
-        if (strcmp(ext, ".mid") == 0) midifile = true;
-        else if (strcmp(ext, ".gro") == 0) allegrofile = true;
-        else print_help();
+        if (strcmp(ext, ".mid") == 0) { midifile = true; }
+        else if (strcmp(ext, ".gro") == 0) { allegrofile = true; }
+        else { print_help(); }
     } else if (len > 4) {
         ext = filename + len - 4;
     } 
