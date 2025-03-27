@@ -599,11 +599,9 @@ public:
     }
     const char *get_string() {
         char *s = ptr;
-        char *fence = buffer + len;
+        [[maybe_unused]] char *fence = buffer + len;
         assert(ptr < fence);
-        while (*ptr++) {
-            assert(ptr < fence);
-        }
+        while (*ptr++) { assert(ptr < fence); }
         get_pad();
         return s;
     }
@@ -630,13 +628,11 @@ typedef class Serial_write_buffer: public Serial_buffer {
     }
     void check_buffer(long needed);
     void set_string(const char *s) {
-        char *fence = buffer + len;
+        [[maybe_unused]] char *fence = buffer + len;
         assert(ptr < fence);
         // two brackets surpress a g++ warning, because this is an
         // assignment operator inside a test.
-        while ((*ptr++ = *s++)) {
-            assert(ptr < fence);
-        }
+        while ((*ptr++ = *s++)) { assert(ptr < fence); }
         // 4311 is type cast pointer to long warning
         // 4312 is type cast long to pointer warning
 #if defined(_WIN32)

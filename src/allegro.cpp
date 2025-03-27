@@ -1568,9 +1568,9 @@ Alg_track *Alg_track::unserialize(void *buffer, long len)
 {
     assert(len > 8);
     ser_read_buf.init_for_read(buffer, len);
-    bool alg = ser_read_buf.get_char() == 'A' &&
-               ser_read_buf.get_char() == 'L' &&
-               ser_read_buf.get_char() == 'G';
+    [[maybe_unused]] bool alg = ser_read_buf.get_char() == 'A'
+                             && ser_read_buf.get_char() == 'L'
+                             && ser_read_buf.get_char() == 'G';
     assert(alg);
     char c = ser_read_buf.get_char();
     if (c == 'S') {
@@ -1598,12 +1598,12 @@ Alg_track *Alg_track::unserialize(void *buffer, long len)
 void Alg_seq::unserialize_seq()
 {
     ser_read_buf.check_input_buffer(48);
-    bool algs = (ser_read_buf.get_char() == 'A') &&
-                (ser_read_buf.get_char() == 'L') &&
-                (ser_read_buf.get_char() == 'G') &&
-                (ser_read_buf.get_char() == 'S');
+    [[maybe_unused]] bool algs = ser_read_buf.get_char() == 'A'
+                              && ser_read_buf.get_char() == 'L'
+                              && ser_read_buf.get_char() == 'G'
+                              && ser_read_buf.get_char() == 'S';
     assert(algs);
-    long len = ser_read_buf.get_int32();
+    [[maybe_unused]] long len = ser_read_buf.get_int32();
     assert(ser_read_buf.get_len() >= len);
     channel_offset_per_track = ser_read_buf.get_int32();
     units_are_seconds = ser_read_buf.get_int32() != 0;
@@ -1646,13 +1646,13 @@ void Alg_seq::unserialize_seq()
 void Alg_track::unserialize_track()
 {
     ser_read_buf.check_input_buffer(32);
-    bool algt = (ser_read_buf.get_char() == 'A') &&
-                (ser_read_buf.get_char() == 'L') &&
-                (ser_read_buf.get_char() == 'G') &&
-                (ser_read_buf.get_char() == 'T');
+    [[maybe_unused]] bool algt = ser_read_buf.get_char() == 'A'
+                              && ser_read_buf.get_char() == 'L'
+                              && ser_read_buf.get_char() == 'G'
+                              && ser_read_buf.get_char() == 'T';
     assert(algt);
-    long offset = ser_read_buf.get_posn(); // stored length does not include 'ALGT'
-    long bytes = ser_read_buf.get_int32();
+    [[maybe_unused]] long offset = ser_read_buf.get_posn(); // stored length does not include 'ALGT'
+    [[maybe_unused]] long bytes = ser_read_buf.get_int32();
     assert(bytes <= ser_read_buf.get_len() - offset);
     units_are_seconds = static_cast<bool>(ser_read_buf.get_int32());
     beat_dur = ser_read_buf.get_double();
@@ -2452,17 +2452,11 @@ void Alg_time_sigs::paste(double start, Alg_seq *seq)
     double num_of_insert = 4.0;
     double den_of_insert = 4.0;
     double beat_of_insert = 0.0;
-    // TODO: check if first_from_index is needed
-    int first_from_index = 0; // where to start copying from
     if (from.length() > 0 && from[0].beat < ALG_EPS) {
         // there is an initial time signature in "from"
         num_of_insert = from[0].num;
         den_of_insert = from[0].den;
-        // since we are handling the first time signature in from,
-        // we can start copying at index == 1:
-        first_from_index = 1;
     }
-    static_cast<void>(first_from_index); // first_from_index is unused, so silence warning for now
     // compare time signatures to see if we need a change at start:
     if (num_before_splice != num_of_insert ||
         den_before_splice != den_of_insert) {

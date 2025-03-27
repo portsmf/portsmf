@@ -745,8 +745,7 @@ void test33() // cut and inspect some notes
     seq->write(ofile, true);
     ofile.close();
 
-    Alg_seq_ptr cut = seq->cut(0.0, 3.0, false);
-    static_cast<void>(cut); // cut is unused, so silence warning
+    [[maybe_unused]] Alg_seq_ptr cut = seq->cut(0.0, 3.0, false);
 
     tm = seq->get_time_map();
     printf("timemap %p after\n", static_cast<void*>(tm));
