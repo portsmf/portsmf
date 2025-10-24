@@ -752,8 +752,8 @@ void Alg_event_list::set_start_time(Alg_event *event, double t)
     // For Alg_track, change the time and move the event to the right place
     // For Alg_seq, find the track and do the update there
 
-    long index, i;
-    Alg_track_ptr track_ptr;
+    long index = 0;
+    Alg_track_ptr track_ptr = nullptr;
     if (type == 'e') { // this is an Alg_event_list
         // make sure the owner has not changed its event set
         assert(events_owner &&
@@ -773,7 +773,7 @@ void Alg_event_list::set_start_time(Alg_event *event, double t)
         }
     } else { // type == 's', an Alg_seq
         Alg_seq_ptr seq = (Alg_seq_ptr) this;
-        for (i = 0; i < seq->tracks(); i++) {
+        for (int i = 0; i < seq->tracks(); i++) {
             track_ptr = seq->track(i);
             // if you implemented binary search, you could call it
             // instead of this loop too.
@@ -1897,7 +1897,7 @@ void Alg_track::paste(double t, Alg_event_list *seq)
     assert(get_type() == 't');
     // seq can be an Alg_event_list, an Alg_track, or an Alg_seq
     // if it is an Alg_event_list, units_are_seconds must match
-    bool prev_units_are_seconds;
+    bool prev_units_are_seconds = false;
     if (seq->get_type() == 'e') {
         assert(seq->get_owner()->get_units_are_seconds() == units_are_seconds);
     } else { // make it match
