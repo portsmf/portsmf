@@ -7,22 +7,22 @@
 #include "algsmfrd_internal.h"
 #include "mfmidi.h"
 
-typedef class Alg_note_list {
+class Alg_note_list {
 public:
-    Alg_note_ptr note;
+    Alg_note *note;
     class Alg_note_list *next;
-    Alg_note_list(Alg_note_ptr n, class Alg_note_list *list) {
+    Alg_note_list(Alg_note *n, class Alg_note_list *list) {
         note = n; next = list; }
-} *Alg_note_list_ptr;
+};
 
 
 class Alg_midifile_reader: public Midifile_reader {
 public:
     std::istream *file;
-    Alg_seq_ptr seq;
+    Alg_seq *seq;
     int divisions;
-    Alg_note_list_ptr note_list;
-    Alg_track_ptr track;
+    Alg_note_list *note_list;
+    Alg_track *track;
     int track_number; // the number of the (current) track
     // chan is actual_channel + channel_offset_per_track * track_num +
     //                          channel_offset_per_track * port
@@ -33,7 +33,7 @@ public:
     // while reading, this is channel_offset_per_track * track_num
     int channel_offset;
 
-    Alg_midifile_reader(std::istream &f, Alg_seq_ptr new_seq) {
+    Alg_midifile_reader(std::istream &f, Alg_seq *new_seq) {
         file = &f;
         note_list = nullptr;
         seq = new_seq;
@@ -58,7 +58,7 @@ protected:
     int port; // value from the portprefix meta event
 
     double get_time();
-    void update(int chan, int key, Alg_parameter_ptr param);
+    void update(int chan, int key, Alg_parameter *param);
     void *Mf_malloc(size_t size) override { return malloc(size); }
     void Mf_free(void *obj, size_t /*size*/) override { free(obj); }
     /* Methods to be called while processing the MIDI file. */
@@ -94,7 +94,7 @@ protected:
 Alg_midifile_reader::~Alg_midifile_reader()
 {
     while (note_list) {
-        Alg_note_list_ptr to_be_freed = note_list;
+        Alg_note_list *to_be_freed = note_list;
         note_list = note_list->next;
         delete to_be_freed;
     }
@@ -202,7 +202,7 @@ void Alg_midifile_reader::Mf_on(int chan, int key, int vel)
         Mf_off(chan, key, vel);
         return;
     }
-    Alg_note_ptr note = new Alg_note();
+    Alg_note *note = new Alg_note();
     note_list = new Alg_note_list(note, note_list);
     /*    trace("on: %d at %g\n", key, get_time()); */
     note->time = get_time();
@@ -219,14 +219,14 @@ void Alg_midifile_reader::Mf_on(int chan, int key, int vel)
 void Alg_midifile_reader::Mf_off(int chan, int key, int /*vel*/)
 {
     double time = get_time();
-    Alg_note_list_ptr *p = &note_list;
+    Alg_note_list **p = &note_list;
     while (*p) {
         if ((*p)->note->get_identifier() == key &&
             (*p)->note->chan ==
                     chan + channel_offset + port * channel_offset_per_port) {
             (*p)->note->dur = time - (*p)->note->time;
             // trace("updated %d dur %g\n", (*p)->note->key, (*p)->note->dur);
-            Alg_note_list_ptr to_be_freed = *p;
+            Alg_note_list *to_be_freed = *p;
             *p = to_be_freed->next;
             delete to_be_freed;
         } else {
@@ -237,9 +237,9 @@ void Alg_midifile_reader::Mf_off(int chan, int key, int /*vel*/)
 }
 
 
-void Alg_midifile_reader::update(int chan, int key, Alg_parameter_ptr param)
+void Alg_midifile_reader::update(int chan, int key, Alg_parameter *param)
 {
-    Alg_update_ptr update = new Alg_update;
+    Alg_update *update = new Alg_update;
     update->time = get_time();
     update->chan = chan;
     if (chan != -1) {
@@ -469,7 +469,7 @@ void Alg_midifile_reader::Mf_text(int type, int len, unsigned char *msg)
 
 
 // parse file into a seq.
-Alg_error alg_smf_read(std::istream &file, Alg_seq_ptr new_seq)
+Alg_error alg_smf_read(std::istream &file, Alg_seq *new_seq)
 {
     assert(new_seq);
     Alg_midifile_reader ar(file, new_seq);
