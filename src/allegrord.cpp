@@ -19,15 +19,15 @@ public:
     bool line_parser_flag;
     string field;
     bool error_flag;
-    Alg_seq_ptr seq;
+    Alg_seq *seq;
     double tsnum;
     double tsden;
     double offset;
     bool offset_found;
 
-    Alg_reader(std::istream *a_file, Alg_seq_ptr new_seq);
+    Alg_reader(std::istream *a_file, Alg_seq *new_seq);
     void readline();
-    Alg_parameters_ptr process_attributes(Alg_parameters_ptr attributes,
+    Alg_parameters *process_attributes(Alg_parameters *attributes,
                                           double time);
     bool parse();
     long parse_chan(string &field);
@@ -42,9 +42,9 @@ public:
     double parse_pitch(string &field);
     long parse_after_key(int key, string &field, int n);
     long find_int_in(string &field, int n);
-    bool parse_attribute(string &field, Alg_parameter_ptr parm);
-    bool parse_val(Alg_parameter_ptr param, string &s, int i);
-    bool check_type(char type_char, Alg_parameter_ptr param);
+    bool parse_attribute(string &field, Alg_parameter *parm);
+    bool parse_val(Alg_parameter *param, string &s, int i);
+    bool check_type(char type_char, Alg_parameter *param);
 };
 
 
@@ -62,7 +62,7 @@ double Alg_reader::parse_pitch(string &field)
 
 // it is the responsibility of the caller to delete
 // the seq
-Alg_reader::Alg_reader(std::istream *a_file, Alg_seq_ptr new_seq)
+Alg_reader::Alg_reader(std::istream *a_file, Alg_seq *new_seq)
 {
     file = a_file; // save the file
     line_parser_flag = false;
@@ -75,7 +75,7 @@ Alg_reader::Alg_reader(std::istream *a_file, Alg_seq_ptr new_seq)
 }
 
 
-Alg_error alg_read(std::istream &file, Alg_seq_ptr new_seq, double *offset_ptr)
+Alg_error alg_read(std::istream &file, Alg_seq *new_seq, double *offset_ptr)
     // read a sequence from allegro file
 {
     assert(new_seq);
@@ -103,13 +103,13 @@ void Alg_reader::readline()
 }
 
 
-Alg_parameters_ptr Alg_reader::process_attributes(
-        Alg_parameters_ptr attributes, double time)
+Alg_parameters *Alg_reader::process_attributes(
+        Alg_parameters *attributes, double time)
 {
     // print "process_attributes:", attributes
     bool ts_flag = false;
     if (attributes) {
-        Alg_parameters_ptr a;
+        Alg_parameters *a;
         bool in_seconds = seq->get_units_are_seconds();
         if ((a = Alg_parameters::remove_key(&attributes, "tempor"))) {
             double tempo = a->parm.r;
@@ -163,7 +163,7 @@ bool Alg_reader::parse()
         double new_pitch = 0.0;
         bool new_key_flag = false;   // "K" syntax
         int new_key = 0;
-        Alg_parameters_ptr attributes = nullptr;
+        Alg_parameters *attributes = nullptr;
         if (line_parser.peek() == '#') {
             // look for #track
             line_parser.get_nonspace_quoted(field);
@@ -183,7 +183,7 @@ bool Alg_reader::parse()
                 // must be at time zero
                 if (field.length() > 0) {
                     // insert the field as sequence name or track name
-                    Alg_update_ptr update = new Alg_update;
+                    Alg_update *update = new Alg_update;
                     update->chan = -1;
                     update->time = 0;
                     update->set_identifier(-1);
@@ -358,7 +358,7 @@ bool Alg_reader::parse()
                 attributes = process_attributes(attributes, time);
                 // if there's a duration or pitch, make a note:
                 if (new_pitch_flag || dur_flag) {
-                    Alg_note_ptr note_ptr = new Alg_note;
+                    Alg_note *note_ptr = new Alg_note;
                     note_ptr->chan = voice;
                     note_ptr->time = time;
                     note_ptr->dur = dur;
@@ -378,7 +378,7 @@ bool Alg_reader::parse()
                         update_key = key;
                     }
                     if (loud_flag) {
-                        Alg_update_ptr new_upd = new Alg_update;
+                        Alg_update *new_upd = new Alg_update;
                         new_upd->chan = voice;
                         new_upd->time = time;
                         new_upd->set_identifier(update_key);
@@ -391,13 +391,13 @@ bool Alg_reader::parse()
                     }
                     if (attributes) {
                         while (attributes) {
-                            Alg_update_ptr new_upd = new Alg_update;
+                            Alg_update *new_upd = new Alg_update;
                             new_upd->chan = voice;
                             new_upd->time = time;
                             new_upd->set_identifier(update_key);
                             new_upd->parameter = attributes->parm;
                             seq->add_event(new_upd, track_num);
-                            Alg_parameters_ptr p = attributes;
+                            Alg_parameters *p = attributes;
                             attributes = attributes->next;
                             p->parm.s = nullptr; // so we don't delete the string
                             delete p;
@@ -665,7 +665,7 @@ long Alg_reader::find_int_in(string &field, int n)
 }
 
 
-bool Alg_reader::parse_attribute(string &field, Alg_parameter_ptr param)
+bool Alg_reader::parse_attribute(string &field, Alg_parameter *param)
 {
     int i = 1;
     while (i < static_cast<int>(field.length())) {
@@ -686,7 +686,7 @@ bool Alg_reader::parse_attribute(string &field, Alg_parameter_ptr param)
 }
 
 
-bool Alg_reader::parse_val(Alg_parameter_ptr param, string &s, int i)
+bool Alg_reader::parse_val(Alg_parameter *param, string &s, int i)
 {
     int len = static_cast<int>(s.length());
     if (i >= len) {
@@ -756,7 +756,7 @@ bool Alg_reader::parse_val(Alg_parameter_ptr param, string &s, int i)
 }
 
 
-bool Alg_reader::check_type(char type_char, Alg_parameter_ptr param)
+bool Alg_reader::check_type(char type_char, Alg_parameter *param)
 {
     return param->attr_type() == type_char;
 }

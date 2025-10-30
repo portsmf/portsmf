@@ -39,7 +39,7 @@ void print_help()
 
 // process -- perform tempo changing and flattening operations
 //
-void process(Alg_seq_ptr seq, bool tempo_flag, double tempo, 
+void process(Alg_seq *seq, bool tempo_flag, double tempo,
              bool flatten_flag)
 {
     // the tempo changing operation replaces the tempo track with
@@ -99,7 +99,7 @@ int main(int argc, char *argv[])
     } else if (len > 4) {
         ext = filename + len - 4;
     } 
-    Alg_seq_ptr seq;
+    Alg_seq *seq;
     strcpy(outfilename, filename);
     if (midifile) {
         seq = new Alg_seq(filename, true);

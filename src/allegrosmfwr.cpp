@@ -24,7 +24,7 @@ public:
 
 class Alg_smf_write {
 public:
-    Alg_smf_write(Alg_seq_ptr seq);
+    Alg_smf_write(Alg_seq *seq);
     ~Alg_smf_write() = default;
     long channels_per_track; // used to encode track number into chan field
     // chan is actual_channel + channels_per_track * track_number
@@ -39,19 +39,19 @@ private:
     void write_tempo(int divs, int tempo);
     void write_tempo_change(int i);
     void write_time_signature(int i);
-    void write_note(Alg_note_ptr note, bool on);
-    void write_update(Alg_update_ptr update);
-    void write_text(Alg_update_ptr update, char type);
+    void write_note(Alg_note *note, bool on);
+    void write_update(Alg_update *update);
+    void write_text(Alg_update *update, char type);
     void write_binary(int type_byte, const char *msg);
-    void write_midi_channel_prefix(Alg_update_ptr update);
-    void write_smpteoffset(Alg_update_ptr update, char *s);
+    void write_midi_channel_prefix(Alg_update *update);
+    void write_smpteoffset(Alg_update *update, char *s);
     void write_data(int data);
     int to_midi_channel(int channel);
     int to_track(int channel);
 
     std::ostream *out_file;
 
-    Alg_seq_ptr seq;
+    Alg_seq *seq;
 
     int num_tracks; // number of tracks not counting tempo track
     int division; // divisions per quarter note, default = 120
@@ -73,7 +73,7 @@ private:
 };
 
 
-Alg_smf_write::Alg_smf_write(Alg_seq_ptr a_seq)
+Alg_smf_write::Alg_smf_write(Alg_seq *a_seq)
 {
     out_file = nullptr;
 
@@ -147,7 +147,7 @@ void print_queue(event_queue *q)
 }
 
 
-void Alg_smf_write::write_note(Alg_note_ptr note, bool on)
+void Alg_smf_write::write_note(Alg_note *note, bool on)
 {
     double event_time = (on ? note->time : note->time + note->dur);
     write_delta(event_time);
@@ -178,7 +178,7 @@ void Alg_smf_write::write_note(Alg_note_ptr note, bool on)
 }
 
 
-void Alg_smf_write::write_midi_channel_prefix(Alg_update_ptr update)
+void Alg_smf_write::write_midi_channel_prefix(Alg_update *update)
 {
     if (update->chan >= 0) { // write MIDI Channel Prefix
         write_delta(update->time);
@@ -195,7 +195,7 @@ void Alg_smf_write::write_midi_channel_prefix(Alg_update_ptr update)
 }
 
 
-void Alg_smf_write::write_text(Alg_update_ptr update, char type)
+void Alg_smf_write::write_text(Alg_update *update, char type)
 {
     write_midi_channel_prefix(update);
     write_delta(update->time);
@@ -206,7 +206,7 @@ void Alg_smf_write::write_text(Alg_update_ptr update, char type)
 }
 
 
-void Alg_smf_write::write_smpteoffset(Alg_update_ptr update, char *s)
+void Alg_smf_write::write_smpteoffset(Alg_update *update, char *s)
 {
     write_midi_channel_prefix(update);
     write_delta(update->time);
@@ -280,7 +280,7 @@ void Alg_smf_write::write_binary(int type_byte, const char *msg)
 }
 
 
-void Alg_smf_write::write_update(Alg_update_ptr update)
+void Alg_smf_write::write_update(Alg_update *update)
 {
     const char *name = update->parameter.attr_name();
 
@@ -456,13 +456,13 @@ void Alg_smf_write::write_track(int i)
         event_queue *current = pending;
         pending = pending->next;
         if (current->type == 'n') {
-            Alg_note_ptr n = (Alg_note_ptr) notes[current->index];
+            Alg_note *n = (Alg_note*) notes[current->index];
             if (n->is_note()) {
                 write_note(n, true);
                 pending = push(pending, new event_queue('o',
                       TICK_TIME(n->time + n->dur, -1), current->index, nullptr));
             } else if (n->is_update()) {
-                Alg_update_ptr u = (Alg_update_ptr) n;
+                Alg_update *u = (Alg_update*) n;
                 write_update(u);
             }
             int next = current->index + 1;
@@ -472,7 +472,7 @@ void Alg_smf_write::write_track(int i)
                 pending = push(pending, current);
             }
         } else if (current->type == 'o') { //note-off
-            Alg_note_ptr n = (Alg_note_ptr) notes[current->index];
+            Alg_note *n = (Alg_note*) notes[current->index];
             write_note(n, false);
             delete current;
         } else if (current->type == 'c') { // tempo change

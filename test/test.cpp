@@ -3,7 +3,7 @@
 using namespace std;
 #include "allegro.h"
 
-void seq_print(Alg_seq_ptr seq)
+void seq_print(Alg_seq *seq)
 {
     for (int i = 0; i < seq->tracks(); i++) {
         printf("TRACK %d\n", i);
@@ -14,14 +14,14 @@ void seq_print(Alg_seq_ptr seq)
 }
 
 
-Alg_seq_ptr make_simple_score()
+Alg_seq *make_simple_score()
 {
-    Alg_seq_ptr seq = new Alg_seq;
-    Alg_update_ptr update = seq->create_update(0, 0, -1);
+    Alg_seq *seq = new Alg_seq;
+    Alg_update *update = seq->create_update(0, 0, -1);
     update->set_real_value("attackr", 0.007);
     seq->add_event(update, 0);
 
-    Alg_note_ptr note = seq->create_note(0, 0, 63, 63, 105, 0.8);
+    Alg_note *note = seq->create_note(0, 0, 63, 63, 105, 0.8);
     // at 100bpm, dur will be 1.33 beats
     seq->add_event(note, 0);
 
@@ -35,14 +35,14 @@ Alg_seq_ptr make_simple_score()
 
 void test1()
 {
-    Alg_seq_ptr seq = make_simple_score();
+    Alg_seq *seq = make_simple_score();
     seq->write(cout, false);
 }
 
 
 void test2()
 {
-    Alg_seq_ptr seq = make_simple_score();
+    Alg_seq *seq = make_simple_score();
     seq->convert_to_seconds();
     seq->get_time_map()->last_tempo = 120.0 / 60.0; // 120bpm
     seq->time_sig.insert(0, 3, 4);
@@ -50,12 +50,12 @@ void test2()
 }
 
 
-Alg_seq_ptr make_score()
+Alg_seq *make_score()
 {
-    Alg_seq_ptr seq = make_simple_score();
+    Alg_seq *seq = make_simple_score();
     // now we have notes at 0 and 0.8 seconds
     // add new ones at 1.2 and 1.8 seconds
-    Alg_note_ptr note = seq->create_note(1.2, 0, 67, 67, 107, 0.6);
+    Alg_note *note = seq->create_note(1.2, 0, 67, 67, 107, 0.6);
     seq->add_event(note, 0);
 
     note = seq->create_note(1.8, 0, 69, 69, 109, 0.2);
@@ -73,7 +73,7 @@ Alg_seq_ptr make_score()
 
 void test3()
 {
-    Alg_seq_ptr seq = make_score();
+    Alg_seq *seq = make_score();
     // show the tempo map:
     seq->get_time_map()->show();
 
@@ -91,7 +91,7 @@ void test3()
 
 void test4()
 {
-    Alg_seq_ptr seq = make_score();
+    Alg_seq *seq = make_score();
     seq->write(cout, false);
     ofstream file("test4.mid", ios::out | ios::binary);
     if (!file) {
@@ -114,7 +114,7 @@ void test4()
 
 void test5()
 {
-    Alg_seq_ptr seq = make_score();
+    Alg_seq *seq = make_score();
     ofstream file("test5.gro");
     if (!file.is_open()) {
     printf("could not open test5.gro for writing");
@@ -137,14 +137,14 @@ void test5()
 
 void test6()
 {
-    Alg_seq_ptr seq = make_score();
+    Alg_seq *seq = make_score();
     seq->write(cout, true);
 	long index = seq->seek_time(1.0, 0);
 	printf("seq->get_units_are_seconds() = %d\n", seq->get_units_are_seconds());
 	printf("seq->seek_time(1.0, 0) returns %ld\n", index);
 	printf("note is:\n");
 	if ((*seq->track(0))[index]->is_note()) {
-		((Alg_note_ptr) (*(seq->track(0)))[index])->show();
+		((Alg_note*) (*(seq->track(0)))[index])->show();
 	} else {
 		printf("event is not a note\n");
 	}
@@ -163,7 +163,7 @@ void test6()
 
 void test7()
 {
-    Alg_seq_ptr seq = make_score();
+    Alg_seq *seq = make_score();
     seq->write(cout, false);
     // insert time signature for one bar each of 4/4, 3/4, 5/4, 4/4 and
     // call quarter_to_measure() on various times
@@ -199,7 +199,7 @@ void test7()
 
 void test8()
 {
-    Alg_seq_ptr seq = make_score();
+    Alg_seq *seq = make_score();
 	seq->convert_to_beats(); // just to be sure
     seq->write(cout, false);
 	seq->get_time_map()->beats.len = 1;
@@ -220,7 +220,7 @@ void test8()
 
 void test9()
 {
-    Alg_seq_ptr seq = make_score();
+    Alg_seq *seq = make_score();
 	seq->convert_to_beats(); // just to be sure
     seq->write(cout, false);
 	seq->get_time_map()->beats.len = 1;
@@ -244,7 +244,7 @@ void test9()
 
 void test10()
 {
-    Alg_seq_ptr seq = make_score();
+    Alg_seq *seq = make_score();
 	seq->convert_to_beats(); // just to be sure
 	seq->set_time_sig(0.0, 4, 4);
 	seq->set_time_sig(4.0, 3, 4);
@@ -270,10 +270,10 @@ void test10()
 
 void test11() // add track
 {
-    Alg_seq_ptr seq = make_score();
+    Alg_seq *seq = make_score();
 	seq->convert_to_beats();
     seq->add_track(3);
-	Alg_note_ptr note = seq->create_note(2.0, 0, 50, 50, 100, 1.0);
+	Alg_note *note = seq->create_note(2.0, 0, 50, 50, 100, 1.0);
 	seq->add_event(note, 3);
 	seq->write(cout, false);
 	seq->write(cout, true);
@@ -285,10 +285,10 @@ void test11() // add track
 
 void test12() // test merge_tracks()
 {
-    Alg_seq_ptr seq = make_score();
+    Alg_seq *seq = make_score();
 	seq->convert_to_beats(); // just to be sure
     seq->add_track(3);
-	Alg_note_ptr note = seq->create_note(2.0, 0, 50, 50, 100, 1.0);
+	Alg_note *note = seq->create_note(2.0, 0, 50, 50, 100, 1.0);
 	seq->add_event(note, 3);
 	seq->write(cout, false);
 	seq->merge_tracks();
@@ -304,7 +304,7 @@ void test12() // test merge_tracks()
 
 void test13()
 {
-    Alg_seq_ptr seq = make_score();
+    Alg_seq *seq = make_score();
 	seq->convert_to_beats(); // just to be sure
     seq->write(cout, false);
 	seq->set_tempo(120.0, 1, 3);
@@ -325,7 +325,7 @@ void test13()
 
 void test14()
 {
-    Alg_seq_ptr seq = make_score();
+    Alg_seq *seq = make_score();
 	seq->convert_to_beats(); // just to be sure
     seq->write(cout, false);
 	seq->set_start_time((*(seq->track(0)))[3], 0.5);
@@ -340,9 +340,9 @@ void test14()
 
 void test15() // test copy() routine
 {
-    Alg_seq_ptr seq = make_score();
+    Alg_seq *seq = make_score();
 	seq->convert_to_beats(); // just to be sure
-	Alg_event_ptr event = (*(seq->track(0)))[3];
+	Alg_event *event = (*(seq->track(0)))[3];
 	event->show();
 	event = seq->copy_event(event);
 	event->show();
@@ -361,10 +361,10 @@ void test15() // test copy() routine
 
 void test16() // test cut_from_track
 {
-    Alg_seq_ptr seq = make_score();
+    Alg_seq *seq = make_score();
 	seq->convert_to_beats(); // just to be sure
     seq->write(cout, false);
-    Alg_track_ptr track = seq->cut_from_track(0, 2, 1, true);
+    Alg_track *track = seq->cut_from_track(0, 2, 1, true);
 	seq->track_list.append(track);
 	seq->write(cout, false);
 }
@@ -383,13 +383,13 @@ void test16() // test cut_from_track
 
 void test17() // test cut
 {
-    Alg_seq_ptr seq = make_score();
+    Alg_seq *seq = make_score();
 	seq->convert_to_beats(); // just to be sure
 	seq->set_time_sig(0, 2, 4);
 	seq->set_time_sig(2, 2, 8);
 	seq->set_time_sig(3, 4, 4);
     seq->write(cout, false);
-    Alg_seq_ptr new_seq = seq->cut(2, 1, true)->to_alg_seq();
+    Alg_seq *new_seq = seq->cut(2, 1, true)->to_alg_seq();
 	printf("after cut, original is\n");
 	seq->write(cout, false);
 	printf("after cut, new is\n");
@@ -409,9 +409,9 @@ void test17() // test cut
 
 void test18() // test copy_interval_from_track
 {
-    Alg_seq_ptr seq = make_score();
+    Alg_seq *seq = make_score();
 	seq->convert_to_beats(); // just to be sure
-    Alg_track_ptr track = seq->track_list[0].copy(1, 2, false);
+    Alg_track *track = seq->track_list[0].copy(1, 2, false);
 	seq->track_list.append(track);
 	seq->write(cout, false);
 }
@@ -424,7 +424,7 @@ void test18() // test copy_interval_from_track
 
 void test19() // test copy
 {
-	Alg_seq_ptr seq = make_score();
+	Alg_seq *seq = make_score();
     seq->convert_to_beats();
     seq->set_time_sig(0, 2, 4);
     seq->set_time_sig(2, 2, 8);
@@ -432,7 +432,7 @@ void test19() // test copy
     seq->set_tempo(120.0, 1, 3);
     seq->write(cout, false);
     printf("\n");
-    Alg_seq_ptr new_seq = seq->copy(2, 1, true);
+    Alg_seq *new_seq = seq->copy(2, 1, true);
     printf("----------after cut, original---------\n");
     seq->write(cout, false);
     printf("----------after cut, new--------------\n");
@@ -448,13 +448,13 @@ void test19() // test copy
 
 void test20() // TEST 20 -- test track paste
 {
-	Alg_seq_ptr seq = make_score();
+	Alg_seq *seq = make_score();
     seq->convert_to_beats();
     Alg_track &track = *(seq->track(0)->copy(1, 2, false));
     printf("-------seq:---------\n");
     seq->write(cout, false);
     printf("-------track to paste ---------:\n");
-    Alg_seq_ptr new_seq = new Alg_seq(track);
+    Alg_seq *new_seq = new Alg_seq(track);
     new_seq->write(cout, false);
     seq->track(0)->paste(2, &track);
     printf("----------after paste, seq is:---------\n");
@@ -470,7 +470,7 @@ void test20() // TEST 20 -- test track paste
 
 void test21() // TEST 21 -- test paste
 {
-    Alg_seq_ptr seq = make_score();
+    Alg_seq *seq = make_score();
     seq->convert_to_beats();
     seq->set_time_sig(0, 2, 4);
     seq->set_time_sig(2, 2, 8);
@@ -478,7 +478,7 @@ void test21() // TEST 21 -- test paste
     seq->set_tempo(120.0, 1, 3);
     printf("-------seq original:---------\n");
     seq->write(cout, false);
-    Alg_seq_ptr copy_buffer = seq->copy(1, 2, false);
+    Alg_seq *copy_buffer = seq->copy(1, 2, false);
     printf("-------what to paste:---------\n");
     copy_buffer->write(cout, false);
     seq->paste(2, copy_buffer);
@@ -506,13 +506,13 @@ void test21() // TEST 21 -- test paste
 
 void test22() // TEST 22 -- test merge_to_track
 {
-    Alg_seq_ptr seq = make_score();
+    Alg_seq *seq = make_score();
     seq->convert_to_beats();
-    Alg_track_ptr track = seq->track(0)->copy(1, 2, false);
+    Alg_track *track = seq->track(0)->copy(1, 2, false);
     printf("seq\n");
     seq->write(cout, false);
     printf("track:\n");
-    Alg_seq_ptr new_seq = new Alg_seq(track);
+    Alg_seq *new_seq = new Alg_seq(track);
     new_seq->write(cout, false);
     seq->merge(2, new_seq);
     printf("seq after merge\n");
@@ -532,13 +532,13 @@ void test22() // TEST 22 -- test merge_to_track
 
 void test23() // test merge
 {
-    Alg_seq_ptr seq = make_score();
+    Alg_seq *seq = make_score();
     seq->convert_to_beats();
-    Alg_track_ptr track = seq->track(0)->copy(1, 2, false);
+    Alg_track *track = seq->track(0)->copy(1, 2, false);
     printf("seq:\n");
     seq->write(cout, false);
     printf("new_seq:\n");
-    Alg_seq_ptr new_seq = new Alg_seq(track);
+    Alg_seq *new_seq = new Alg_seq(track);
     new_seq->write(cout, false);
     seq->merge(2, new_seq);
     printf("seq after merge:\n");
@@ -553,7 +553,7 @@ void test23() // test merge
 
 void test24() // test silence_track
 {
-    Alg_seq_ptr seq = make_score();
+    Alg_seq *seq = make_score();
     seq->convert_to_beats();
     seq->silence_track(0, 1, 2, true);
     seq->write(cout, false);
@@ -567,10 +567,10 @@ void test24() // test silence_track
 
 void test25() // test silence_events
 {
-    Alg_seq_ptr seq = make_score();
+    Alg_seq *seq = make_score();
     seq->convert_to_beats();
     // copy everything from track 0
-    Alg_track_ptr tr = seq->copy_track(0, 0, 10, false);
+    Alg_track *tr = seq->copy_track(0, 0, 10, false);
     // and make the new data be track 1
     seq->track_list.append(tr);
     seq->silence(1, 2, true);
@@ -586,7 +586,7 @@ void test25() // test silence_events
 
 void test26() // test clear_track
 {
-    Alg_seq_ptr seq = make_score();
+    Alg_seq *seq = make_score();
     seq->convert_to_beats();
     seq->clear_track(0, 1, 2, true);
     seq->write(cout, false);
@@ -601,10 +601,10 @@ void test26() // test clear_track
 
 void test27() // test clear
 {
-    Alg_seq_ptr seq = make_score();
+    Alg_seq *seq = make_score();
     seq->convert_to_beats();
     // copy everything from track 0
-    Alg_track_ptr track = seq->copy_track(0, 0, 10, false);
+    Alg_track *track = seq->copy_track(0, 0, 10, false);
     // and make the new data be track 1
     seq->track_list.append(track);
     seq->clear(1, 2, true);
@@ -619,7 +619,7 @@ void test27() // test clear
 
 void test28() // test insert_silence_in_track
 {
-    Alg_seq_ptr seq = make_score();
+    Alg_seq *seq = make_score();
     printf("BEFORE:\n");
     seq->write(cout, false);
     seq->convert_to_beats();
@@ -640,7 +640,7 @@ void test28() // test insert_silence_in_track
 
 void test29() // test insert_silence
 {
-    Alg_seq_ptr seq = make_score();
+    Alg_seq *seq = make_score();
     seq->convert_to_beats();
     seq->set_time_sig(0, 2, 4);
     seq->set_time_sig(2, 2, 8);
@@ -672,9 +672,9 @@ void test29() // test insert_silence
 
 void test30() // test find on a track
 {
-    Alg_seq_ptr seq = make_score();
+    Alg_seq *seq = make_score();
     seq->convert_to_beats();
-    Alg_event_list_ptr track = seq->track(0)->find(0, 2, false, 1 << 0,
+    Alg_event_list *track = seq->track(0)->find(0, 2, false, 1 << 0,
                            1 << ALG_NOTE);
     seq->track_list.append(new Alg_track(*track, seq->get_time_map(),
                      seq->get_units_are_seconds()));
@@ -691,9 +691,9 @@ void test30() // test find on a track
 
 void test31() // test find_in_track
 {
-    Alg_seq_ptr seq = make_score();
+    Alg_seq *seq = make_score();
     seq->convert_to_beats();
-    Alg_event_list_ptr track = seq->find_in_track(0, 0, 2, false, 1 << 0,
+    Alg_event_list *track = seq->find_in_track(0, 0, 2, false, 1 << 0,
                           1 << ALG_NOTE);
     seq->track_list.append(new Alg_track(*track, seq->get_time_map(),
                      seq->get_units_are_seconds()));
@@ -707,7 +707,7 @@ void test32() // serialize big midi file and unserialize
         printf("Error: Could not open jsb-wtc-c-f.mid for reading\n");
         return;
     }
-    Alg_seq_ptr seq = new Alg_seq(file, true); // read midi file
+    Alg_seq *seq = new Alg_seq(file, true); // read midi file
     file.close();
 
     ofstream ofile("bigseq1.alg", ios::out | ios::binary);
@@ -720,7 +720,7 @@ void test32() // serialize big midi file and unserialize
     long bytes;
     seq->serialize(&buffer, &bytes);
     printf("Serialized %ld bytes\n", bytes);
-    Alg_seq_ptr new_seq = (Alg_seq_ptr) seq->unserialize(buffer, bytes);
+    Alg_seq *new_seq = (Alg_seq*) seq->unserialize(buffer, bytes);
     ofstream sfile("bigseq2.alg", ios::out | ios::binary);
     new_seq->write(sfile, true);
     sfile.close();
@@ -733,11 +733,11 @@ void test33() // cut and inspect some notes
         printf("Error: Could not open be-ps-05.mid for reading\n");
         return;
     }
-    Alg_seq_ptr seq = new Alg_seq(file, true); // read midi file
+    Alg_seq *seq = new Alg_seq(file, true); // read midi file
     file.close();
     seq->convert_to_seconds();
 
-    Alg_time_map_ptr tm = seq->get_time_map();
+    Alg_time_map *tm = seq->get_time_map();
     printf("time map %p before\n", static_cast<void*>(tm));
     // tm->show();
     printf("timestamp before %.15g\n", tm->beats[tm->locate_time(3.74)].time);
@@ -745,7 +745,7 @@ void test33() // cut and inspect some notes
     seq->write(ofile, true);
     ofile.close();
 
-    [[maybe_unused]] Alg_seq_ptr cut = seq->cut(0.0, 3.0, false);
+    [[maybe_unused]] Alg_seq *cut = seq->cut(0.0, 3.0, false);
 
     tm = seq->get_time_map();
     printf("timemap %p after\n", static_cast<void*>(tm));

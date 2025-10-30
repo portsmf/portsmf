@@ -79,7 +79,7 @@ static const char *bend_attr;
 static const char *program_attr;
 
 
-void send_midi_update(Alg_update_ptr u, PortMidiStream *midi)
+void send_midi_update(Alg_update *u, PortMidiStream *midi)
 {
     if (u->get_attribute() == pressure_attr) {
         if (u->get_identifier() < 0) {
@@ -117,7 +117,7 @@ void seq2midi(Alg_seq &seq, PortMidiStream *midi)
     Alg_iterator iterator(&seq, true);
     iterator.begin();
     bool note_on;
-    Alg_event_ptr e = iterator.next(&note_on);
+    Alg_event *e = iterator.next(&note_on);
     Pt_Start(1, nullptr, nullptr); // initialize time
     while (e) {
         double next_time = (note_on ? e->time : e->get_end_time());
@@ -130,7 +130,7 @@ void seq2midi(Alg_seq &seq, PortMidiStream *midi)
         } else if (e->is_note()) { // must be a note off
             midi_note_on(midi, next_time, e->chan, e->get_identifier(), 0);
         } else if (e->is_update()) { // process updates here
-            Alg_update_ptr u = (Alg_update_ptr) e; // coerce to proper type
+            Alg_update *u = (Alg_update*) e; // coerce to proper type
             send_midi_update(u, midi);
         } 
         // add next note
