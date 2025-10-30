@@ -653,6 +653,8 @@ class Serial_write_buffer: public Serial_buffer {
     }
 };
 
+class Alg_seq;
+
 class Alg_track : public Alg_event_list {
 protected:
     Alg_time_map *time_map;
