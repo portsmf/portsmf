@@ -2183,7 +2183,7 @@ void Alg_time_sigs::cut(double start, double end, double dur)
     // are no time signatures before beat (Case 2),
     // or there is one time signature at beat (Case 1)
     } else if (i == 0) {
-        /* do nothing (might be good to assert(false)) */ ;
+        assert(false);
     // Case 3: i-1 must be the effective time sig position
     } else {
         // get the time signature in effect at end
@@ -2756,12 +2756,9 @@ bool Alg_iterator::earlier(int i, int j)
     double t_i = pending_events[i].time;
     double t_j = pending_events[j].time;
 
-    if (t_i < t_j) {
-        return true;
-    }
-    // not sure if this case really exists or this is the best rule, but
-    // we want to give precedence to note-off events
-    else if (t_i == t_j && pending_events[j].note_on) {
+    // not sure if this case really exists or this is the best rule,
+    // but we want to give precedence to note-off events
+    if (t_i < t_j || (t_i == t_j && pending_events[j].note_on)) {
         return true;
     }
     return false;
