@@ -945,7 +945,7 @@ void Alg_time_map::insert_beat(double time, double beat)
     // make sure we didn't generate a zero tempo.
     // if so, space beats by one microbeat as necessary
     for (
-        size_t j = std::max(1UL, i); // do not adjust beats[0]
+        auto j = std::max(size_t{1}, i); // do not adjust beats[0]
         j < beats.len && beats[j - 1].beat + 0.000001 >= beats[j].beat;
         j++
     ) {
@@ -1413,7 +1413,7 @@ void Serial_write_buffer::check_buffer(size_t needed)
     if (len < (ptr - buffer) + needed) { // do we need more space?
         // initially, length is zero, so bump new_len to a minimum starting value
         // make sure new_len is as big as needed; exponential growth is important
-        size_t new_len = std::max({needed, len * 2, 1024UL});
+        auto new_len = std::max({needed, len * 2, size_t{1024}});
         char *new_buffer = new char[new_len]; // allocate space
         ptr = new_buffer + (ptr - buffer); // relocate ptr to new buffer
         if (len > 0) { // we had a buffer already
@@ -2721,7 +2721,7 @@ void Alg_iterator::show()
 {
     for (size_t i = 0; i < len; i++) {
         Alg_pending_event *p = &(pending_events[i]);
-        printf("    %zu: %p[%ld]@%g on %d\n", i, static_cast<void*>(p->events), p->index,
+        printf("    %zu: %p[%zu]@%g on %d\n", i, static_cast<void*>(p->events), p->index,
                p->offset, p->note_on);
     }
 }

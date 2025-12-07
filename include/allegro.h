@@ -1025,7 +1025,7 @@ protected:
     void serialize_seq();
     Alg_error error; //!< error code set by file readers
     //! an internal function used for writing Allegro track names
-    Alg_event *write_track_name(std::ostream &file, int n,
+    Alg_event *write_track_name(std::ostream &file, size_t n,
                                    Alg_events &events);
 public:
     int channel_offset_per_track; //!< used to encode track_num into channel

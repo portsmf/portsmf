@@ -48,7 +48,7 @@ void parameter_print(std::ostream &file, Alg_parameter *p)
     } /* switch (p->attr_type()) */
 }
 
-Alg_event *Alg_seq::write_track_name(std::ostream &file, int n,
+Alg_event *Alg_seq::write_track_name(std::ostream &file, size_t n,
                                         Alg_events &events)
 // write #track <n> <trackname-or-sequencename>
 // if we write the name on the "#track" line, then we do *not* want

@@ -467,21 +467,21 @@ int16_t Midifile_reader::to16bit(int8_t c1, int8_t c2)
 
 int32_t Midifile_reader::read32bit()
 {
-    int c1, c2, c3, c4;
+    int8_t c1, c2, c3, c4;
 
-    c1 = egetc();
+    c1 = static_cast<int8_t>(egetc());
     if (midifile_error) {
         return 0;
     }
-    c2 = egetc();
+    c2 = static_cast<int8_t>(egetc());
     if (midifile_error) {
         return 0;
     }
-    c3 = egetc();
+    c3 = static_cast<int8_t>(egetc());
     if (midifile_error) {
         return 0;
     }
-    c4 = egetc();
+    c4 = static_cast<int8_t>(egetc());
     if (midifile_error) {
         return 0;
     }
@@ -490,12 +490,12 @@ int32_t Midifile_reader::read32bit()
 
 int16_t Midifile_reader::read16bit()
 {
-    int c1, c2;
-    c1 = egetc();
+    int8_t c1, c2;
+    c1 = static_cast<int8_t>(egetc());
     if (midifile_error) {
         return 0;
     }
-    c2 = egetc();
+    c2 = static_cast<int8_t>(egetc());
     if (midifile_error) {
         return 0;
     }

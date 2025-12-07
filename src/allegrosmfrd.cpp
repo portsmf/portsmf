@@ -80,7 +80,7 @@ protected:
     void binary_msg(size_t len, unsigned char *msg, const char *attr_string);
     void Mf_sysex(size_t, unsigned char*) override;
     void Mf_arbitrary(size_t, unsigned char*) override;
-    void Mf_metamisc(int,int,unsigned char*) override;
+    void Mf_metamisc(int, size_t, unsigned char*) override;
     void Mf_seqnum(int) override;
     void Mf_smpte(int,int,int,int,int) override;
     void Mf_timesig(int,int,int,int) override;
@@ -347,7 +347,7 @@ void Alg_midifile_reader::Mf_arbitrary(size_t /*len*/, unsigned char* /*msg*/)
 }
 
 
-void Alg_midifile_reader::Mf_metamisc(int type, int /*len*/, unsigned char* /*msg*/)
+void Alg_midifile_reader::Mf_metamisc(int type, size_t /*len*/, unsigned char* /*msg*/)
 {
     char text[128];
 #if defined(_WIN32)

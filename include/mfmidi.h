@@ -60,7 +60,7 @@ protected:
     virtual void Mf_chanpressure(int,int) = 0;
     virtual void Mf_sysex(size_t, unsigned char*) = 0;
     virtual void Mf_arbitrary(size_t, unsigned char*) = 0;
-    virtual void Mf_metamisc(int,int,unsigned char*) = 0;
+    virtual void Mf_metamisc(int, size_t, unsigned char*) = 0;
     virtual void Mf_seqnum(int) = 0;
     virtual void Mf_smpte(int,int,int,int,int) = 0;
     virtual void Mf_timesig(int,int,int,int) = 0;
@@ -70,7 +70,7 @@ protected:
     virtual void Mf_text(int, size_t, unsigned char*) = 0;
 
 private:
-    ptrdiff_t Mf_toberead;
+    long Mf_toberead;
 
     long readvarinum();
     int32_t read32bit();
