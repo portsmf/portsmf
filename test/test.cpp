@@ -5,9 +5,9 @@ using namespace std;
 
 void seq_print(Alg_seq *seq)
 {
-    for (int i = 0; i < seq->tracks(); i++) {
-        printf("TRACK %d\n", i);
-        for (int j = 0; j < seq->track(i)->length(); j++) {
+    for (size_t i = 0; i < seq->tracks(); i++) {
+        printf("TRACK %zu\n", i);
+        for (size_t j = 0; j < seq->track(i)->length(); j++) {
             (*seq->track(i))[j]->show();
         }
     }
@@ -139,9 +139,9 @@ void test6()
 {
     Alg_seq *seq = make_score();
     seq->write(cout, true);
-	long index = seq->seek_time(1.0, 0);
+	size_t index = seq->seek_time(1.0, 0);
 	printf("seq->get_units_are_seconds() = %d\n", seq->get_units_are_seconds());
-	printf("seq->seek_time(1.0, 0) returns %ld\n", index);
+	printf("seq->seek_time(1.0, 0) returns %zu\n", index);
 	printf("note is:\n");
 	if ((*seq->track(0))[index]->is_note()) {
 		((Alg_note*) (*(seq->track(0)))[index])->show();
@@ -717,7 +717,7 @@ void test32() // serialize big midi file and unserialize
     ofile.close();
 
     void *buffer;
-    long bytes;
+    size_t bytes;
     seq->serialize(&buffer, &bytes);
     printf("Serialized %ld bytes\n", bytes);
     Alg_seq *new_seq = (Alg_seq*) seq->unserialize(buffer, bytes);

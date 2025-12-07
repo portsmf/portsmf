@@ -53,11 +53,11 @@ static const char *const escape_chars[] = {"\\n", "\\t", "\\\\", "\\r", "\\\""};
 
 void string_escape(std::string &result, const char *str, const char *quote)
 {
-    int length = static_cast<int>(strlen(str));
     if (quote[0]) {
         result.append(1, quote[0]);
     }
-    for (int i = 0; i < length; i++) {
+    size_t length = strlen(str);
+    for (size_t i = 0; i < length; i++) {
         if (!isalnum(static_cast<unsigned char>(str[i]))) {
             const char *const chars = "\n\t\\\r\"";
             const char *const special = strchr(chars, str[i]);
@@ -77,7 +77,7 @@ void String_parse::get_remainder(std::string &field)
 {
     field.clear();
     skip_space();
-    int len = str->length() - pos;
+    ptrdiff_t len = str->length() - pos;
     if ((len > 0) && ((*str)[len - 1] == '\n')) { // if str ends in newline,
         len--; // reduce length to ignore newline
     }

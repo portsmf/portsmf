@@ -319,7 +319,7 @@ void Midifile_reader::badbyte(int c)
 
 void Midifile_reader::metaevent(int type)
 {
-    int leng = msgleng();
+    size_t leng = msgleng();
     // made this unsigned to avoid sign extend
     unsigned char *m = msg();
 
@@ -455,23 +455,17 @@ long Midifile_reader::readvarinum()
     return value;
 }
 
-long Midifile_reader::to32bit(int c1, int c2, int c3, int c4)
+int32_t Midifile_reader::to32bit(int8_t c1, int8_t c2, int8_t c3, int8_t c4)
 {
-    long value = 0L;
-
-    value = (c1 & 0xff);
-    value = (value<<8) + (c2 & 0xff);
-    value = (value<<8) + (c3 & 0xff);
-    value = (value<<8) + (c4 & 0xff);
-    return value;
+    return (c1 << 24) | (c2 << 16) | (c3 << 8) | (c4);
 }
 
-int Midifile_reader::to16bit(int c1, int c2)
+int16_t Midifile_reader::to16bit(int8_t c1, int8_t c2)
 {
-    return ((c1 & 0xff) << 8) + (c2 & 0xff);
+    return (c1 << 8) | (c2);
 }
 
-long Midifile_reader::read32bit()
+int32_t Midifile_reader::read32bit()
 {
     int c1, c2, c3, c4;
 
@@ -494,7 +488,7 @@ long Midifile_reader::read32bit()
     return to32bit(c1, c2, c3, c4);
 }
 
-int Midifile_reader::read16bit()
+int16_t Midifile_reader::read16bit()
 {
     int c1, c2;
     c1 = egetc();
@@ -551,7 +545,7 @@ unsigned char *Midifile_reader::msg()
     return Msgbuff;
 }
 
-int Midifile_reader::msgleng()
+size_t Midifile_reader::msgleng()
 {
     return Msgindex;
 }
@@ -569,7 +563,7 @@ void Midifile_reader::msgenlarge()
 {
     unsigned char *newmess;
     unsigned char *oldmess = Msgbuff;
-    int oldleng = Msgsize;
+    size_t oldleng = Msgsize;
 
     Msgsize += MSGINCREMENT;
     newmess = static_cast<unsigned char *>(Mf_malloc((sizeof(unsigned char) * Msgsize)));

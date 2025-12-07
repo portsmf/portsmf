@@ -37,7 +37,7 @@
 //! UNSERIALIZATION:
 //!
 //! The Alg_track class has a static member:
-//!     unserialize(char *buffer, long len)
+//!     unserialize(char *buffer, size_t len)
 //! that will unserialize anything -- an Alg_track or an Alg_seq.
 //! No other function should be called from outside the library.
 //! Internal unserialize functions are:
@@ -90,7 +90,7 @@ public:
     //! that Alg_atoms will not be reported as memory leaks by automation
     //! that doesn't know better. -RBD
     virtual ~Alg_atoms() {
-        for (int i = 0; i < len; i++) {
+        for (size_t i = 0; i < len; i++) {
             delete atoms[i];
         }
         delete[] atoms;
@@ -100,8 +100,8 @@ public:
     //! insert/lookup attribute by name (without prefixed type)
     Alg_attribute insert_string(const char *name);
 private:
-    long maxlen;
-    long len;
+    size_t maxlen;
+    size_t len;
     Alg_attribute *atoms;
 
     //! insert an Attriubute not in table after moving attr to heap
@@ -327,10 +327,10 @@ public:
 //! a sequence of Alg_event objects
 class Alg_events {
 private:
-    long maxlen;
+    size_t maxlen;
     void expand();
 protected:
-    long len;
+    size_t len;
     Alg_event **events; //!< events is array of pointers
 public:
     //! sometimes, it is nice to have the time of the last note-off.
@@ -343,9 +343,9 @@ public:
     //! initially false, in_use can be used to mark "do not delete". If an
     //! Alg_events instance is deleted while "in_use", an assertion will fail.
     bool in_use;
-    virtual int length() { return len; }
-    Alg_event *&operator[](int i) {
-        assert(i >= 0 && i < len);
+    virtual size_t length() { return len; }
+    Alg_event *&operator[](size_t i) {
+        assert(i < len);
         return events[i];
     }
     Alg_events() {
@@ -357,14 +357,14 @@ public:
     //! destructor deletes the events array, but not the
     //! events themselves
     virtual ~Alg_events();
-    void set_events(Alg_event **e, long l, long m) {
+    void set_events(Alg_event **e, size_t l, size_t m) {
         delete[] events;
         events = e; len = l; maxlen = m;
     }
     //! for use by Alg_track and Alg_seq
     void insert(Alg_event *event);
     void append(Alg_event *event);
-    Alg_event *uninsert(long index);
+    Alg_event *uninsert(size_t index);
 };
 
 class Alg_track;
@@ -401,7 +401,7 @@ public:
     //! When applied to an Alg_seq, events are enumerated track
     //! by track with increasing indices. This operation is not
     //! particularly fast on an Alg_seq.
-    virtual Alg_event *&operator[](int i);
+    virtual Alg_event *&operator[](size_t i);
     Alg_event_list() { sequence_number = 0;
         beat_dur = 0.0; real_dur = 0.0; events_owner = nullptr; type = 'e'; }
     Alg_event_list(Alg_track *owner);
@@ -457,13 +457,13 @@ public:
 //! Alg_beats is a list of Alg_beat objects used in Alg_seq
 class Alg_beats {
 private:
-    long maxlen;
+    size_t maxlen;
     void expand();
 public:
-    long len;
+    size_t len;
     Alg_beat *beats;
-    Alg_beat &operator[](int i) {
-        assert(i >= 0 && i < len);
+    Alg_beat &operator[](size_t i) {
+        assert(i < len);
         return beats[i];
     }
     Alg_beats() {
@@ -475,7 +475,7 @@ public:
         len = 1;
     }
     ~Alg_beats() { delete[] beats; }
-    void insert(long i, Alg_beat *beat);
+    void insert(size_t i, Alg_beat *beat);
 };
 
 
@@ -494,10 +494,10 @@ public:
         refcount = 0;
     }
     Alg_time_map(Alg_time_map *map); //!< copy constructor
-    long length() { return beats.len; }
+    size_t length() { return beats.len; }
     void show();
-    long locate_time(double time);
-    long locate_beat(double beat);
+    size_t locate_time(double time);
+    size_t locate_beat(double beat);
     double beat_to_time(double beat);
     double time_to_beat(double time);
     //! Time map manipulations: it is prefered to call the corresponding
@@ -540,7 +540,7 @@ class Serial_buffer {
   protected:
     char *buffer;
     char *ptr;
-    long len;
+    size_t len;
   public:
     Serial_buffer() {
         buffer = nullptr;
@@ -549,8 +549,8 @@ class Serial_buffer {
     }
     virtual ~Serial_buffer() = default;
 
-    long get_posn() { return static_cast<long>(ptr - buffer); }
-    long get_len() { return len; }
+    size_t get_posn() { return static_cast<size_t>(ptr - buffer); }
+    size_t get_len() { return len; }
 };
 
 
@@ -567,7 +567,7 @@ public:
     //! Prepare to read n bytes from buf. The caller must manage buf: it is
     //! valid until reading is finished, and it is caller's responsibility
     //! to free buf when it is no longer needed.
-    void init_for_read(void *buf, long n) {
+    void init_for_read(void *buf, size_t n) {
         buffer = static_cast<char *>(buf);
         ptr = static_cast<char *>(buf);
         len = n;
@@ -613,13 +613,13 @@ class Serial_write_buffer: public Serial_buffer {
     ~Serial_write_buffer() override { delete[] buffer; }
     void init_for_write() { ptr = buffer; }
     //! Writes an int32_t at a given offset
-    void store_int32(long offset, int32_t value) {
-        assert(offset <= static_cast<long>(get_posn() - sizeof(int32_t)));
+    void store_int32(size_t offset, int32_t value) {
+        assert(offset <= static_cast<size_t>(get_posn() - sizeof(int32_t)));
         *reinterpret_cast<int32_t *>(buffer + offset) = value;
     }
     [[deprecated("Use store_int32() instead")]]
-    void store_long(long offset, long value) { store_int32(offset, static_cast<int32_t>(value)); }
-    void check_buffer(long needed);
+    void store_long(size_t offset, long value) { store_int32(offset, static_cast<int32_t>(value)); }
+    void check_buffer(size_t needed);
     void set_string(const char *s) {
         [[maybe_unused]] char *fence = buffer + len;
         assert(ptr < fence);
@@ -630,7 +630,7 @@ class Serial_write_buffer: public Serial_buffer {
         pad();
     }
     void set_int32(int32_t v) {
-        *(reinterpret_cast<long *>(ptr)) = v;
+        *(reinterpret_cast<int32_t *>(ptr)) = v;
         ptr += sizeof(int32_t);
     }
     void set_double(double v) {
@@ -645,7 +645,7 @@ class Serial_write_buffer: public Serial_buffer {
     void pad() {
         while (reinterpret_cast<uintptr_t>(ptr) & 7) { set_char(0); }
     }
-    void *to_heap(long *len) {
+    void *to_heap(size_t *len) {
         *len = get_posn();
         char *newbuf = new char[*len];
         memcpy(newbuf, buffer, *len);
@@ -672,8 +672,8 @@ protected:
 public:
     void serialize_track();
     void unserialize_track();
-    Alg_event *&operator[](int i) override {
-        assert(i >= 0 && i < len);
+    Alg_event *&operator[](size_t i) override {
+        assert(i < len);
         return events[i];
     }
     Alg_track() { units_are_seconds = false; time_map = nullptr;
@@ -697,12 +697,12 @@ public:
     //! Returns a buffer containing a serialization of the
     //! file.  It will be an ASCII representation unless text is true.
     //! *buffer gets a newly allocated buffer pointer. The caller must free it.
-    //! *len gets the length of the serialized track
-    virtual void serialize(void **buffer, long *bytes);
+    //! *bytes gets the length of the serialized track
+    virtual void serialize(void **buffer, size_t *bytes);
 
     //! Try to read from a memory buffer.  Automatically guess
     //! whether it's MIDI or text.
-    static Alg_track *unserialize(void *buffer, long len);
+    static Alg_track *unserialize(void *buffer, size_t len);
 
     //! If the track is really an Alg_seq and you need to access an
     //! Alg_seq method, coerce to an Alg_seq with this function:
@@ -872,23 +872,23 @@ public:
 //! until the next time_sig.
 class Alg_time_sigs {
 private:
-    long maxlen;
+    size_t maxlen;
     void expand(); //!< make more space
-    long len;
+    size_t len;
     Alg_time_sig *time_sigs;
 public:
     Alg_time_sigs() {
         maxlen = len = 0;
         time_sigs = nullptr;
     }
-    Alg_time_sig &operator[](int i) { //!< fetch a time signature
-        assert(i >= 0 && i < len);
+    Alg_time_sig &operator[](size_t i) { //!< fetch a time signature
+        assert(i < len);
         return time_sigs[i];
     }
     ~Alg_time_sigs() { delete[] time_sigs; }
     void show();
-    long length() { return len; }
-    int find_beat(double beat);
+    size_t length() { return len; }
+    size_t find_beat(double beat);
     //! get the number of beats per measure starting at beat
     double get_bar_len(double beat);
     void insert(double beat, double num, double den, bool force = false);
@@ -904,17 +904,17 @@ public:
 //! a sequence of Alg_events objects
 class Alg_tracks {
 private:
-    long maxlen;
+    size_t maxlen;
     void expand();
     void expand_to(int new_max);
-    long len;
+    size_t len;
 public:
     Alg_track **tracks; //!< tracks is array of pointers
-    Alg_track &operator[](int i) {
-        assert(i >= 0 && i < len);
+    Alg_track &operator[](size_t i) {
+        assert(i < len);
         return *tracks[i];
     }
-    long length() { return len; }
+    size_t length() { return len; }
     Alg_tracks() {
         maxlen = len = 0;
         tracks = nullptr;
@@ -922,7 +922,7 @@ public:
     ~Alg_tracks();
     //! Append a track to tracks. This Alg_tracks becomes the owner of track.
     void append(Alg_track *track);
-    void add_track(int track_num, Alg_time_map *time_map, bool seconds);
+    void add_track(size_t track_num, Alg_time_map *time_map, bool seconds);
     void reset();
     void set_in_use(bool flag); //!< handy to set in_use flag on all tracks
 };
@@ -943,7 +943,7 @@ typedef enum {
 struct Alg_pending_event {
     void *cookie; //!< client-provided sequence identifier
     Alg_events *events; //!< the array of events
-    long index; //!< offset of this event
+    size_t index; //!< offset of this event
     bool note_on; //!< is this a note-on or a note-off (if applicable)?
     double offset; //!< time offset for events
     double time; //!< time for this event
@@ -952,29 +952,29 @@ struct Alg_pending_event {
 
 class Alg_iterator {
 private:
-    long maxlen;
+    size_t maxlen;
     void expand();
     void expand_to(int new_max);
-    long len;
+    size_t len;
     Alg_seq *seq;
     Alg_pending_event *pending_events;
     //! the next four fields are mainly for request_note_off()
     Alg_events *events_ptr; //!< remembers events containing current event
-    long index; //!< remembers index of current event
+    size_t index; //!< remembers index of current event
     void *cookie; //!< remembers the cookie associated with next event
     double offset;
     void show();
     bool earlier(int i, int j);
-    void insert(Alg_events *events, long index, bool note_on,
+    void insert(Alg_events *events, size_t index, bool note_on,
                 void *cookie, double offset);
     //! returns the info on the next pending event in the priority queue
-    bool remove_next(Alg_events *&events, long &index, bool &note_on,
+    bool remove_next(Alg_events *&events, size_t &index, bool &note_on,
                      void *&cookie, double &offset, double &time);
 public:
     ~Alg_iterator() { delete[] pending_events; }
     bool note_off_flag; //!< remembers if we are iterating over note-off
                         //!< events as well as note-on and update events
-    long length() { return len; }
+    size_t length() { return len; }
     Alg_iterator(Alg_seq *s, bool note_off) {
         seq = s;
         note_off_flag = note_off;
@@ -1052,7 +1052,7 @@ public:
     Alg_seq(const char *filename, bool smf, double *offset_ptr = nullptr);
     ~Alg_seq() override;
     int get_read_error() { return error; }
-    void serialize(void **buffer, long *bytes) override;
+    void serialize(void **buffer, size_t *bytes) override;
     void copy_time_sigs_to(Alg_seq *dest); //!< a utility function
     void set_time_map(Alg_time_map *map) override;
 
@@ -1069,41 +1069,41 @@ public:
     bool smf_write(const char *filename);
 
     //! Returns the number of tracks
-    int tracks();
+    size_t tracks();
 
     //! create a track
-    void add_track(int track_num) {
+    void add_track(size_t track_num) {
         track_list.add_track(track_num, get_time_map(), units_are_seconds);
     }
 
     //! Return a particular track. This Alg_seq owns the track, so the
     //! caller must not delete the result.
-    Alg_track *track(int);
+    Alg_track *track(size_t);
 
-    Alg_event *&operator[](int i) override;
+    Alg_event *&operator[](size_t i) override;
 
     void convert_to_seconds() override;
     void convert_to_beats() override;
 
-    Alg_track *cut_from_track(int track_num, double start, double dur,
+    Alg_track *cut_from_track(size_t track_num, double start, double dur,
                                  bool all);
     Alg_seq *cut(double t, double len, bool all) override;
-    void insert_silence_in_track(int track_num, double t, double len);
+    void insert_silence_in_track(size_t track_num, double t, double len);
     void insert_silence(double t, double len) override;
-    Alg_track *copy_track(int track_num, double t, double len, bool all);
+    Alg_track *copy_track(size_t track_num, double t, double len, bool all);
     Alg_seq *copy(double start, double len, bool all) override;
     void paste(double start, Alg_seq *seq);
     void clear(double t, double len, bool all) override;
     void merge(double t, Alg_event_list *seq) override;
     void silence(double t, double len, bool all) override;
-    void clear_track(int track_num, double start, double len, bool all);
-    void silence_track(int track_num, double start, double len, bool all);
-    Alg_event_list *find_in_track(int track_num, double t, double len,
+    void clear_track(size_t track_num, double start, double len, bool all);
+    void silence_track(size_t track_num, double start, double len, bool all);
+    Alg_event_list *find_in_track(size_t track_num, double t, double len,
                                      bool all, long channel_mask,
                                      long event_type_mask);
 
     //! find index of first score event after time
-    long seek_time(double time, int track_num);
+    size_t seek_time(double time, size_t track_num);
     bool insert_beat(double time, double beat);
     //! return the time of the beat nearest to time, also returns beat
     //! number through beat. This will correspond to an integer number
@@ -1119,7 +1119,7 @@ public:
     bool stretch_region(double b0, double b1, double dur);
     //! add_event takes a pointer to an event on the heap. The event is not
     //! copied, and this Alg_seq becomes the owner and freer of the event.
-    void add_event(Alg_event *event, int track_num);
+    void add_event(Alg_event *event, size_t track_num);
     void add(Alg_event */*event*/) override { assert(false); } //!< call add_event instead
     //! get the tempo starting at beat
     double get_tempo(double beat);
@@ -1130,7 +1130,7 @@ public:
     void set_time_sig(double beat, double num, double den);
     void beat_to_measure(double beat, long *measure, double *m_beat,
                          double *num, double *den);
-    //! void set_events(Alg_event **events, long len, long max);
+    //! void set_events(Alg_event **events, size_t len, size_t max);
     void merge_tracks();    //!< move all track data into one track
     void set_in_use(bool flag) override; //!< set in_use flag on all tracks
 };
