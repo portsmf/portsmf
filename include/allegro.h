@@ -560,7 +560,7 @@ public:
     //! setting buffer, but it is not the Serial_read_buffer's responsibility
     //! to delete the buffer (owner might want to reuse it), so the destructor
     //! does nothing.
-    ~Serial_read_buffer() override { }
+    ~Serial_read_buffer() override = default;
     void get_pad() {
         while (reinterpret_cast<uintptr_t>(ptr) & 7) { ptr++; }
     }
