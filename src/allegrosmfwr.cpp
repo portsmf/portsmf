@@ -56,9 +56,6 @@ private:
     int division; // divisions per quarter note, default = 120
     int initial_tempo;
 
-    int timesig_num; // numerator of time signature
-    int timesig_den; // denominator of time signature
-
     int keysig;          // number of sharps (+) or flats (-), -99 for undefined
     char keysig_mode; // 'M' or 'm' for major/minor
     double keysig_when;    // time of key signature
@@ -80,7 +77,6 @@ Alg_smf_write::Alg_smf_write(Alg_seq *a_seq)
     // d ticks/beat * 100 beats/min = 60,000 ms/min * 1 tick/ms
     // solving for d, d = 600
     division = 600;         // divisions per quarter note
-    timesig_num = timesig_den = 0; // initially undefined
     keysig = -99;
     keysig_mode = 0;
     initial_tempo = 500000;
