@@ -103,7 +103,7 @@ Alg_attribute Alg_atoms::insert_string(const char *name)
 }
 
 
-void Alg_parameter::copy(Alg_parameter *parm)
+void Alg_parameter::copy(const Alg_parameter *parm)
 {
     *this = *parm; // copy all fields
     // if the value is a string, copy the string
@@ -113,7 +113,7 @@ void Alg_parameter::copy(Alg_parameter *parm)
 }
 
 
-void Alg_parameter::show()
+void Alg_parameter::show() const
 {
     switch (attr[0]) {
     case 'r': {
@@ -232,7 +232,7 @@ Alg_parameter *Alg_parameters::find(Alg_attribute attr)
 }
 
 
-int Alg_event::get_type_code()
+int Alg_event::get_type_code() const
 {
     if (!is_note()) {
         const char* attr = get_attribute();
@@ -357,7 +357,7 @@ void Alg_event::set_atom_value(const char *a, const char *value)
 }
 
 
-float Alg_event::get_pitch()
+float Alg_event::get_pitch() const
 {
     assert(is_note());
     Alg_note* note = (Alg_note *) this;
@@ -365,7 +365,7 @@ float Alg_event::get_pitch()
 }
 
 
-float Alg_event::get_loud()
+float Alg_event::get_loud() const
 {
     assert(is_note());
     Alg_note* note = (Alg_note *) this;
@@ -373,7 +373,7 @@ float Alg_event::get_loud()
 }
 
 
-double Alg_event::get_start_time()
+double Alg_event::get_start_time() const
 {
     assert(is_note());
     Alg_note* note = (Alg_note *) this;
@@ -381,7 +381,7 @@ double Alg_event::get_start_time()
 }
 
 
-double Alg_event::get_end_time()
+double Alg_event::get_end_time() const
 {
     assert(is_note());
     Alg_note* note = (Alg_note *) this;
@@ -389,7 +389,7 @@ double Alg_event::get_end_time()
 }
 
 
-double Alg_event::get_duration()
+double Alg_event::get_duration() const
 {
     assert(is_note());
     Alg_note* note = (Alg_note *) this;
@@ -420,7 +420,7 @@ void Alg_event::set_duration(double d)
 }
 
 
-bool Alg_event::has_attribute(const char *a)
+bool Alg_event::has_attribute(const char *a) const
 {
     assert(is_note());
     assert(a); // must be non-null
@@ -431,7 +431,7 @@ bool Alg_event::has_attribute(const char *a)
 }
 
 
-char Alg_event::get_attribute_type(const char *a)
+char Alg_event::get_attribute_type(const char *a) const
 {
     assert(is_note());
     assert(a);
@@ -439,7 +439,7 @@ char Alg_event::get_attribute_type(const char *a)
 }
 
 
-const char *Alg_event::get_string_value(const char *a, const char *value)
+const char *Alg_event::get_string_value(const char *a, const char *value) const
 {
     assert(is_note());
     assert(a); // must be non-null
@@ -454,7 +454,7 @@ const char *Alg_event::get_string_value(const char *a, const char *value)
 }
 
 
-double Alg_event::get_real_value(const char *a, double value)
+double Alg_event::get_real_value(const char *a, double value) const
 {
     assert(is_note());
     assert(a);
@@ -469,7 +469,7 @@ double Alg_event::get_real_value(const char *a, double value)
 }
 
 
-bool Alg_event::get_logical_value(const char *a, bool value)
+bool Alg_event::get_logical_value(const char *a, bool value) const
 {
     assert(is_note());
     assert(a);
@@ -484,7 +484,7 @@ bool Alg_event::get_logical_value(const char *a, bool value)
 }
 
 
-long Alg_event::get_integer_value(const char *a, int32_t value)
+long Alg_event::get_integer_value(const char *a, int32_t value) const
 {
     assert(is_note());
     assert(a);
@@ -499,7 +499,7 @@ long Alg_event::get_integer_value(const char *a, int32_t value)
 }
 
 
-const char *Alg_event::get_atom_value(const char *a, const char *value)
+const char *Alg_event::get_atom_value(const char *a, const char *value) const
 {
     assert(is_note());
     assert(a);
@@ -525,7 +525,7 @@ void Alg_event::delete_attribute(const char *a)
 }
 
 
-const char *Alg_event::get_attribute()
+const char *Alg_event::get_attribute() const
 // Note: this returns a string, not an Alg_attribute
 {
     assert(is_update());
@@ -534,7 +534,7 @@ const char *Alg_event::get_attribute()
 }
 
 
-char Alg_event::get_update_type()
+char Alg_event::get_update_type() const
 {
     assert(is_update());
     Alg_update* update = (Alg_update *) this;
@@ -542,7 +542,7 @@ char Alg_event::get_update_type()
 }
 
 
-const char *Alg_event::get_string_value()
+const char *Alg_event::get_string_value() const
 {
     assert(is_update());
     Alg_update* update = (Alg_update *) this;
@@ -551,7 +551,7 @@ const char *Alg_event::get_string_value()
 }
 
 
-double Alg_event::get_real_value()
+double Alg_event::get_real_value() const
 {
     assert(is_update());
     Alg_update* update = (Alg_update *) this;
@@ -560,7 +560,7 @@ double Alg_event::get_real_value()
 }
 
 
-bool Alg_event::get_logical_value()
+bool Alg_event::get_logical_value() const
 {
     assert(is_update());
     Alg_update* update = (Alg_update *) this;
@@ -569,7 +569,7 @@ bool Alg_event::get_logical_value()
 }
 
 
-int32_t Alg_event::get_integer_value()
+int32_t Alg_event::get_integer_value() const
 {
     assert(is_update());
     Alg_update* update = (Alg_update *) this;
@@ -578,7 +578,7 @@ int32_t Alg_event::get_integer_value()
 }
 
 
-const char *Alg_event::get_atom_value()
+const char *Alg_event::get_atom_value() const
 {
     assert(is_update());
     Alg_update* update = (Alg_update *) this;
@@ -587,7 +587,7 @@ const char *Alg_event::get_atom_value()
 }
 
 
-bool Alg_event::overlap(double t, double len, bool all)
+bool Alg_event::overlap(double t, double len, bool all) const
 {
     // event starts within region
     if (time >= t && time <= t + len - ALG_EPS) {
@@ -605,7 +605,7 @@ bool Alg_event::overlap(double t, double len, bool all)
 }
 
 
-Alg_note::Alg_note(Alg_note *note)
+Alg_note::Alg_note(const Alg_note *note)
 {
     *this = *note; // copy all fields
     // parameters is now a shared pointer. We need to copy the
@@ -629,12 +629,12 @@ Alg_note::~Alg_note()
 }
 
 
-void Alg_note::show()
+void Alg_note::show() const
 {
     printf("Alg_note: time %g, chan %ld, dur %g, key %ld, "
            "pitch %g, loud %g, attributes ",
            time, chan, dur, key, pitch, loud);
-    Alg_parameters *parms = parameters;
+    const Alg_parameters *parms = parameters;
     while (parms) {
         parms->parm.show();
         printf(" ");
@@ -644,7 +644,7 @@ void Alg_note::show()
 }
 
 
-Alg_update::Alg_update(Alg_update *update)
+Alg_update::Alg_update(const Alg_update *update)
 {
     *this = *update; // copy all fields
     // parameter requires careful copy to possibly duplicate string value:
@@ -652,7 +652,7 @@ Alg_update::Alg_update(Alg_update *update)
 }
 
 
-void Alg_update::show()
+void Alg_update::show() const
 {
     printf("Alg_update: ");
     parameter.show();
@@ -1293,13 +1293,13 @@ Alg_track::Alg_track(Alg_time_map *map, bool seconds)
 }
 
 
-Alg_event *Alg_track::copy_event(Alg_event *event)
+Alg_event *Alg_track::copy_event(const Alg_event *event) const
 {
     Alg_event *new_event;
     if (event->is_note()) {
-        new_event = new Alg_note((Alg_note*) event);
+        new_event = new Alg_note((const Alg_note*) event);
     } else { // update
-        new_event = new Alg_update((Alg_update*) event);
+        new_event = new Alg_update((const Alg_update*) event);
     }
     return new_event;
 }
@@ -2107,7 +2107,7 @@ void Alg_time_sigs::insert(double beat, double num, double den, bool force)
 }
 
 
-void Alg_time_sigs::show()
+void Alg_time_sigs::show() const
 {
     printf("Alg_time_sig: ");
     for (int i = 0; i < len; i++) {
@@ -2117,7 +2117,7 @@ void Alg_time_sigs::show()
 }
 
 
-int Alg_time_sigs::find_beat(double beat)
+int Alg_time_sigs::find_beat(double beat) const
 {
     // index where you would insert a new time signature at beat
     int i = 0;
@@ -2128,7 +2128,7 @@ int Alg_time_sigs::find_beat(double beat)
 }
 
 
-double Alg_time_sigs::get_bar_len(double beat)
+double Alg_time_sigs::get_bar_len(double beat) const
 {
     int i = find_beat(beat);
     double num = 4.0;
@@ -2736,10 +2736,10 @@ void Alg_iterator::expand()
 #define HEAP_PARENT(loc) ((((loc) + 1) / 2) - 1)
 #define FIRST_CHILD(loc) (((loc) * 2) + 1)
 
-void Alg_iterator::show()
+void Alg_iterator::show() const
 {
     for (int i = 0; i < len; i++) {
-        Alg_pending_event *p = &(pending_events[i]);
+        const Alg_pending_event *p = &(pending_events[i]);
         printf("    %d: %p[%ld]@%g on %d\n", i, static_cast<void*>(p->events), p->index,
                p->offset, p->note_on);
     }
@@ -3461,7 +3461,7 @@ bool Alg_seq::set_tempo(double bpm, double start_beat, double end_beat)
 }
 
 
-double Alg_seq::get_bar_len(double beat)
+double Alg_seq::get_bar_len(double beat) const
 {
     return time_sig.get_bar_len(beat);
 }

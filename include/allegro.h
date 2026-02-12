@@ -138,11 +138,11 @@ public:
 
     Alg_parameter() { attr = "i"; }
     ~Alg_parameter();
-    void copy(Alg_parameter *); //!< copy from another parameter
-    char attr_type() { return alg_attr_type(attr); }
-    const char *attr_name() { return alg_attr_name(attr); }
+    void copy(const Alg_parameter *); //!< copy from another parameter
+    char attr_type() const { return alg_attr_type(attr); }
+    const char *attr_name() const { return alg_attr_name(attr); }
     void set_attr(Alg_attribute a) { attr = a; }
-    void show();
+    void show() const;
 };
 
 
@@ -204,22 +204,22 @@ protected:
 public:
     double time;
     long chan;
-    virtual void show() = 0;
+    virtual void show() const = 0;
     // Note: there is no Alg_event() because Alg_event is an abstract class.
-    bool is_note() { return (type == 'n'); }   //!< tell whether an Alg_event is a note
-    bool is_update() { return (type == 'u'); } //!< tell whether an Alg_event is a parameter update
-    char get_type() { return type; }   //!< return 'n' for note, 'u' for update
-    int get_type_code();  //!< 1 = volume change,      2 = pitch bend,
-                          //!< 3 = control change,     4 = program change,
-                          //!< 5 = pressure change,    6 = key signature,
-                          //!< 7 = time sig numerator, 8 = time sig denominator
-    bool get_selected() { return selected; }
+    bool is_note() const { return (type == 'n'); }   //!< tell whether an Alg_event is a note
+    bool is_update() const { return (type == 'u'); } //!< tell whether an Alg_event is a parameter update
+    char get_type() const { return type; }   //!< return 'n' for note, 'u' for update
+    int get_type_code() const;  //!< 1 = volume change,      2 = pitch bend,
+                                //!< 3 = control change,     4 = program change,
+                                //!< 5 = pressure change,    6 = key signature,
+                                //!< 7 = time sig numerator, 8 = time sig denominator
+    bool get_selected() const { return selected; }
     void set_selected(bool b) { selected = b; }
     // Note: notes are identified by a (channel, identifier) pair.
     // For midi, the identifier is the key number (pitch). The identifier
     // does not have to represent pitch; it's main purpose is to identify
     // notes so that they can be named by subsequent update events.
-    long get_identifier() { return key; } //!< get MIDI key or note identifier of note or update
+    long get_identifier() const { return key; } //!< get MIDI key or note identifier of note or update
     void set_identifier(long i) { key = i; } //!< set the identifier
     //! In all of these set_ methods, strings are owned by the caller and
     //! copied as necessary by the callee. For notes, an attribute/value
@@ -236,13 +236,13 @@ public:
 
     // Some note methods. These fail (via assert()) if this is not a note:
     //
-    float get_pitch();//!< get pitch in steps -- use this even for MIDI
-    float get_loud(); //!< get loudness (MIDI velocity)
+    float get_pitch() const;//!< get pitch in steps -- use this even for MIDI
+    float get_loud() const; //!< get loudness (MIDI velocity)
     // times are in seconds or beats, depending upon the units_are_seconds
     // flag in the containing sequence
-    double get_start_time(); //!< get start time in seconds or beats
-    double get_end_time();   //!< get end time in seconds or beats
-    double get_duration();   //!< get duration in seconds or beats
+    double get_start_time() const; //!< get start time in seconds or beats
+    double get_end_time() const;   //!< get end time in seconds or beats
+    double get_duration() const;   //!< get duration in seconds or beats
     void set_pitch(float);
     void set_loud(float);
     void set_duration(double);
@@ -252,21 +252,21 @@ public:
     //! types. Attribute names end with a type designation: 's', 'r', 'l',
     //! 'i', or 'a'.
     //!
-    bool has_attribute(const char *attr);      //!< test if note has attribute/value pair
-    char get_attribute_type(const char *attr); //!< get the associated type:
+    bool has_attribute(const char *attr) const;      //!< test if note has attribute/value pair
+    char get_attribute_type(const char *attr) const; //!< get the associated type:
         //!< 's' = string,
         //!< 'r' = real (double), 'l' = logical (bool), 'i' = integer (long),
         //!< 'a' = atom (char *), a unique string stored in Alg_seq
     //! get the string value
-    const char *get_string_value(const char *attr, const char *value = nullptr);
+    const char *get_string_value(const char *attr, const char *value = nullptr) const;
     //! get the real value
-    double get_real_value(const char *attr, double value = 0.0);
+    double get_real_value(const char *attr, double value = 0.0) const;
     //! get the logical value
-    bool get_logical_value(const char *attr, bool value = false);
+    bool get_logical_value(const char *attr, bool value = false) const;
     //! get the integer value
-    long get_integer_value(const char *attr, int32_t value = 0);
+    long get_integer_value(const char *attr, int32_t value = 0) const;
     //! get the atom value
-    const char *get_atom_value(const char *attr, const char *value = nullptr);
+    const char *get_atom_value(const char *attr, const char *value = nullptr) const;
     void delete_attribute(const char *attr);   //!< delete an attribute/value pair
         //!< (ignore if no matching attribute/value pair exists)
 
@@ -274,23 +274,23 @@ public:
     //! Attributes are converted to/from strings to avoid explicit use
     //! of Alg_attribute types.
     //!
-    const char *get_attribute();    //!< get the update's attribute (string)
-    char get_update_type();   //!< get the update's type: 's' = string,
+    const char *get_attribute() const;    //!< get the update's attribute (string)
+    char get_update_type() const;   //!< get the update's type: 's' = string,
         //!< 'r' = real (double), 'l' = logical (bool), 'i' = integer (long),
         //!< 'a' = atom (char *), a unique string stored in Alg_seq
-    const char *get_string_value(); //!< get the update's string value
+    const char *get_string_value() const; //!< get the update's string value
         //!< Notes: Caller does not own the return value. Do not modify.
         //!< Do not use after underlying Alg_seq is modified.
-    double get_real_value();  //!< get the update's real value
-    bool get_logical_value(); //!< get the update's logical value
-    int32_t get_integer_value(); //!< get the update's integer value
-    const char *get_atom_value();   //!< get the update's atom value
+    double get_real_value() const;  //!< get the update's real value
+    bool get_logical_value() const; //!< get the update's logical value
+    int32_t get_integer_value() const; //!< get the update's integer value
+    const char *get_atom_value() const;   //!< get the update's atom value
         //!< Notes: Caller does not own the return value. Do not modify.
         //!< The return value's lifetime is forever.
 
     //! Auxiliary function to aid in editing tracks
     //! Returns true if the event overlaps the given region
-    bool overlap(double t, double len, bool all);
+    bool overlap(double t, double len, bool all) const;
 
     const char *GetDescription(); //!< computes a text description of this event
     //!< the result is in a static buffer, not thread-safe, just for debugging.
@@ -302,25 +302,25 @@ public:
 class Alg_note : public Alg_event {
 public:
     ~Alg_note() override;
-    Alg_note(Alg_note *); //!< copy constructor
+    Alg_note(const Alg_note *); //!< copy constructor
     float pitch; //!< pitch in semitones (69 = A440)
     float loud;  //!< dynamic corresponding to MIDI velocity
     double dur;   //!< duration in seconds (normally to release point)
     Alg_parameters *parameters; //!< attribute/value pair list
     Alg_note() { type = 'n'; parameters = nullptr; }
-    void show() override;
+    void show() const override;
 };
 
 
 class Alg_update : public Alg_event {
 public:
     ~Alg_update() override = default;
-    Alg_update(Alg_update *); //!< copy constructor
+    Alg_update(const Alg_update *); //!< copy constructor
     Alg_parameter parameter; //!< an update contains one attr/value pair
 
 
     Alg_update() { type = 'u'; }
-    void show() override;
+    void show() const override;
 };
 
 
@@ -343,7 +343,7 @@ public:
     //! initially false, in_use can be used to mark "do not delete". If an
     //! Alg_events instance is deleted while "in_use", an assertion will fail.
     bool in_use;
-    virtual int length() { return len; }
+    virtual int length() const { return len; }
     Alg_event *&operator[](int i) {
         assert(i >= 0 && i < len);
         return events[i];
@@ -406,7 +406,7 @@ public:
         beat_dur = 0.0; real_dur = 0.0; events_owner = nullptr; type = 'e'; }
     Alg_event_list(Alg_track *owner);
 
-    char get_type() { return type; }
+    char get_type() const { return type; }
     Alg_track *get_owner() { return events_owner; }
 
     //! The destructor does not free events because they are owned
@@ -415,9 +415,9 @@ public:
     ~Alg_event_list() override = default;
 
     //! Returns the duration of the sequence in beats or seconds
-    double get_beat_dur() { return beat_dur; }
+    double get_beat_dur() const { return beat_dur; }
     void set_beat_dur(double d) { beat_dur = d; }
-    double get_real_dur() { return real_dur; }
+    double get_real_dur() const { return real_dur; }
     void set_real_dur(double d) { real_dur = d; }
 
     //! Events are stored in time order, so when you change the time of
@@ -430,7 +430,7 @@ public:
     //! track owner in the Alg_event_list.)
     virtual void set_start_time(Alg_event *event, double);
     //! get text description of run-time errors detected, clear error
-    const char *get_last_error_message() { return last_error_message; }
+    const char *get_last_error_message() const { return last_error_message; }
     //! \class Alg_event_list
     //! Implementation hint: keep a sequence number on each Alg_track that is
     //! incremented anytime there is a structural change. (This behavior is
@@ -494,7 +494,7 @@ public:
         refcount = 0;
     }
     Alg_time_map(Alg_time_map *map); //!< copy constructor
-    long length() { return beats.len; }
+    long length() const { return beats.len; }
     void show();
     long locate_time(double time);
     long locate_beat(double beat);
@@ -549,8 +549,8 @@ class Serial_buffer {
     }
     virtual ~Serial_buffer() = default;
 
-    long get_posn() { return static_cast<long>(ptr - buffer); }
-    long get_len() { return len; }
+    long get_posn() const { return static_cast<long>(ptr - buffer); }
+    long get_len() const { return len; }
 };
 
 
@@ -659,10 +659,10 @@ class Alg_track : public Alg_event_list {
 protected:
     Alg_time_map *time_map;
     bool units_are_seconds;
-    char *get_string(char **p, long *b);
-    long get_int32(char **p, long *b);
-    double get_double(char **p, long *b);
-    float get_float(char **p, long *b);
+    char *get_string(char **p, long *b) const;
+    long get_int32(char **p, long *b) const;
+    double get_double(char **p, long *b) const;
+    float get_float(char **p, long *b) const;
     static Serial_read_buffer ser_read_buf;
     static Serial_write_buffer ser_write_buf;
     void serialize_parameter(Alg_parameter *parm);
@@ -681,7 +681,7 @@ public:
     //! initialize empty track with a time map
     Alg_track(Alg_time_map *map, bool seconds);
 
-    Alg_event *copy_event(Alg_event *event); //!< make a complete copy
+    Alg_event *copy_event(const Alg_event *event) const; //!< make a complete copy
 
     Alg_track(Alg_track &track);  //!< copy constructor, does not copy time_map
     //! copy constructor: event_list is copied, map is installed and referenced
@@ -710,12 +710,12 @@ public:
         return (get_type() == 's' ? (Alg_seq*) this : nullptr); }
 
     //! Are we using beats or seconds?
-    bool get_units_are_seconds() { return units_are_seconds; }
+    bool get_units_are_seconds() const { return units_are_seconds; }
     //! Change units
     virtual void convert_to_beats();
     virtual void convert_to_seconds();
     void set_dur(double dur);
-    double get_dur() { return (units_are_seconds ? real_dur : beat_dur); }
+    double get_dur() const { return (units_are_seconds ? real_dur : beat_dur); }
 
     //! Every Alg_track may have an associated time_map. If no map is
     //! specified, or if you set_time_map(nullptr), then the behavior
@@ -886,11 +886,11 @@ public:
         return time_sigs[i];
     }
     ~Alg_time_sigs() { delete[] time_sigs; }
-    void show();
-    long length() { return len; }
-    int find_beat(double beat);
+    void show() const;
+    long length() const { return len; }
+    int find_beat(double beat) const;
     //! get the number of beats per measure starting at beat
-    double get_bar_len(double beat);
+    double get_bar_len(double beat) const;
     void insert(double beat, double num, double den, bool force = false);
     void cut(double start, double end, double dur); //!< remove from start to end
     void trim(double start, double end); //!< retain just start to end
@@ -914,7 +914,7 @@ public:
         assert(i >= 0 && i < len);
         return *tracks[i];
     }
-    long length() { return len; }
+    long length() const { return len; }
     Alg_tracks() {
         maxlen = len = 0;
         tracks = nullptr;
@@ -963,7 +963,7 @@ private:
     long index; //!< remembers index of current event
     void *cookie; //!< remembers the cookie associated with next event
     double offset;
-    void show();
+    void show() const;
     bool earlier(int i, int j);
     void insert(Alg_events *events, long index, bool note_on,
                 void *cookie, double offset);
@@ -974,7 +974,7 @@ public:
     ~Alg_iterator() { delete[] pending_events; }
     bool note_off_flag; //!< remembers if we are iterating over note-off
                         //!< events as well as note-on and update events
-    long length() { return len; }
+    long length() const { return len; }
     Alg_iterator(Alg_seq *s, bool note_off) {
         seq = s;
         note_off_flag = note_off;
@@ -1126,7 +1126,7 @@ public:
     bool set_tempo(double bpm, double start_beat, double end_beat);
 
     //! get the bar length in beats starting at beat
-    double get_bar_len(double beat);
+    double get_bar_len(double beat) const;
     void set_time_sig(double beat, double num, double den);
     void beat_to_measure(double beat, long *measure, double *m_beat,
                          double *num, double *den);
