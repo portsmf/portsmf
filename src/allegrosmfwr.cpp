@@ -15,9 +15,9 @@ public:
   char type;//'n' for note, 'o' for off, 's' for time signature,
             // 'c' for tempo changes
   double time;
-  long index; //of the event in mSeq->notes
+  size_t index; //of the event in mSeq->notes
   class event_queue *next;
-  event_queue(char t, double when, long x, class event_queue *n) {
+  event_queue(char t, double when, size_t x, class event_queue *n) {
         type = t; time = when; index = x; next = n; }
 };
 
@@ -35,10 +35,10 @@ public:
 private:
     long previous_divs; // time in ticks of most recently written event
 
-    void write_track(int i);
+    void write_track(size_t i);
     void write_tempo(int divs, int tempo);
-    void write_tempo_change(int i);
-    void write_time_signature(int i);
+    void write_tempo_change(size_t i);
+    void write_time_signature(size_t i);
     void write_note(Alg_note *note, bool on);
     void write_update(Alg_update *update);
     void write_text(Alg_update *update, char type);
@@ -264,10 +264,10 @@ static char hex_to_char(const char *s)
 
 void Alg_smf_write::write_binary(int type_byte, const char *msg)
 {
-    int len = strlen(msg) / 2;
+    size_t len = strlen(msg) / 2;
     out_file->put(type_byte);
     write_varinum(len);
-    for (int i = 0; i < len; i++) {
+    for (size_t i = 0; i < len; i++) {
         out_file->put(hex_to_char(msg));
         msg += 2;
     }
@@ -350,7 +350,7 @@ void Alg_smf_write::write_update(Alg_update *update)
         // the following simple parser does not reject all badly
         // formatted strings, but it should parse good strings ok
         const char *s = update->parameter.s;
-        int len = strlen(s);
+        size_t len = strlen(s);
         char smpteoffset[5];
         if (len < 24) {
             return; // not long enough, must be bad format
@@ -429,9 +429,9 @@ void Alg_smf_write::write_update(Alg_update *update)
 // it is ok to change units from beats to ticks, saving a divide.
 #define TICK_TIME(t, o) (std::round((t) * division) + 0.25 * (o))
 
-void Alg_smf_write::write_track(int i)
+void Alg_smf_write::write_track(size_t i)
 {
-    int j = 0; // note index
+    size_t j = 0; // note index
     Alg_events &notes = seq->track_list[i];
     event_queue *pending = nullptr;
     if (notes.length() > 0) {
@@ -459,7 +459,7 @@ void Alg_smf_write::write_track(int i)
                 Alg_update *u = (Alg_update*) n;
                 write_update(u);
             }
-            int next = current->index + 1;
+            size_t next = current->index + 1;
             if (next < notes.length()) {
                 current->time = TICK_TIME(notes[next]->time, 0);
                 current->index = next;
@@ -507,7 +507,7 @@ void Alg_smf_write::write_tempo(int divs, int tempo)
 }
 
 
-void Alg_smf_write::write_tempo_change(int i)
+void Alg_smf_write::write_tempo_change(size_t i)
     //  i is index of tempo map
 {
     // extract tempo map
@@ -527,7 +527,7 @@ void Alg_smf_write::write_tempo_change(int i)
 }
 
 
-void Alg_smf_write::write_time_signature(int i)
+void Alg_smf_write::write_time_signature(size_t i)
 {
     Alg_time_sigs &ts = seq->time_sig;
     write_delta(ts[i].beat);
@@ -570,8 +570,7 @@ void Alg_smf_write::write(std::ostream &file)
 
     // write_ all tracks
     seq->convert_to_beats();
-    int i;
-    for (i = 0; i < seq->tracks(); i++) {
+    for (size_t i = 0; i < seq->tracks(); i++) {
         previous_divs = 0;
         *out_file << "MTrk";
         track_len_offset = out_file->tellp();

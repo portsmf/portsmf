@@ -77,17 +77,17 @@ protected:
     void Mf_pitchbend(int,int,int) override;
     void Mf_program(int,int) override;
     void Mf_chanpressure(int,int) override;
-    void binary_msg(int len, unsigned char *msg, const char *attr_string);
-    void Mf_sysex(int,unsigned char*) override;
-    void Mf_arbitrary(int,unsigned char*) override;
-    void Mf_metamisc(int,int,unsigned char*) override;
+    void binary_msg(size_t len, unsigned char *msg, const char *attr_string);
+    void Mf_sysex(size_t, unsigned char*) override;
+    void Mf_arbitrary(size_t, unsigned char*) override;
+    void Mf_metamisc(int, size_t, unsigned char*) override;
     void Mf_seqnum(int) override;
     void Mf_smpte(int,int,int,int,int) override;
     void Mf_timesig(int,int,int,int) override;
     void Mf_tempo(int) override;
     void Mf_keysig(int,int) override;
-    void Mf_sqspecific(int,unsigned char*) override;
-    void Mf_text(int,int,unsigned char*) override;
+    void Mf_sqspecific(size_t, unsigned char*) override;
+    void Mf_text(int, size_t, unsigned char*) override;
 };
 
 
@@ -314,12 +314,12 @@ void Alg_midifile_reader::Mf_chanpressure(int chan, int val)
 }
 
 
-void Alg_midifile_reader::binary_msg(int len, unsigned char *msg,
+void Alg_midifile_reader::binary_msg(size_t len, unsigned char *msg,
                                      const char *attr_string)
 {
     Alg_parameter parameter;
     char *hexstr = new char[len * 2 + 1];
-    for (int i = 0; i < len; i++) {
+    for (size_t i = 0; i < len; i++) {
 #if defined(_WIN32)
 #pragma warning(disable: 4996) // hexstr is long enough
 #endif
@@ -334,20 +334,20 @@ void Alg_midifile_reader::binary_msg(int len, unsigned char *msg,
 }
 
 
-void Alg_midifile_reader::Mf_sysex(int len, unsigned char *msg)
+void Alg_midifile_reader::Mf_sysex(size_t len, unsigned char *msg)
 {
     // sysex messages become updates with attribute sysexs and a hex string
     binary_msg(len, msg, "sysexs");
 }
 
 
-void Alg_midifile_reader::Mf_arbitrary(int /*len*/, unsigned char* /*msg*/)
+void Alg_midifile_reader::Mf_arbitrary(size_t /*len*/, unsigned char* /*msg*/)
 {
     Mf_error("arbitrary data ignored");
 }
 
 
-void Alg_midifile_reader::Mf_metamisc(int type, int /*len*/, unsigned char* /*msg*/)
+void Alg_midifile_reader::Mf_metamisc(int type, size_t /*len*/, unsigned char* /*msg*/)
 {
     char text[128];
 #if defined(_WIN32)
@@ -426,7 +426,7 @@ void Alg_midifile_reader::Mf_keysig(int key, int mode)
 }
 
 
-void Alg_midifile_reader::Mf_sqspecific(int len, unsigned char *msg)
+void Alg_midifile_reader::Mf_sqspecific(size_t len, unsigned char *msg)
 {
     // sequencer specific messages become updates with attribute sqspecifics
     // and a hex string for the value
@@ -434,7 +434,7 @@ void Alg_midifile_reader::Mf_sqspecific(int len, unsigned char *msg)
 }
 
 
-char *heapify2(int len, unsigned char *s)
+char *heapify2(size_t len, unsigned char *s)
 {
     char *h = new char[len + 1];
     memcpy(h, s, len);
@@ -443,7 +443,7 @@ char *heapify2(int len, unsigned char *s)
 }
 
 
-void Alg_midifile_reader::Mf_text(int type, int len, unsigned char *msg)
+void Alg_midifile_reader::Mf_text(int type, size_t len, unsigned char *msg)
 {
     Alg_parameter text;
     text.s = heapify2(len, msg);
