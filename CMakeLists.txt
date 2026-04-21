@@ -19,7 +19,6 @@ option(BUILD_SHARED_LIBS "Build dynamic library" ON)
 add_library(PortSMF
   src/allegro.cpp
   src/allegrord.cpp
-  src/allegroserial.cpp
   src/allegrosmfrd.cpp
   src/allegrosmfwr.cpp
   src/allegrowr.cpp

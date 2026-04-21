@@ -1,4 +1,4 @@
-//! \file allegrowr.cpp -- write sequence to an Allegro file (text)
+//! \file allegrowr.cpp Write sequence to an Allegro file (text)
 
 #include <cassert>
 #include <iostream>

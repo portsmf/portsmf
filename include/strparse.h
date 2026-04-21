@@ -1,4 +1,4 @@
-//! \file strparse.h -- header for String_parse class
+//! \file strparse.h Header for String_parse class
 
 class String_parse {
 public:

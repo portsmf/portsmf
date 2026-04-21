@@ -302,7 +302,7 @@ public:
 class Alg_note : public Alg_event {
 public:
     ~Alg_note() override;
-    Alg_note(Alg_note *); //!< copy constructor
+    Alg_note(Alg_note *note); //!< copy constructor
     float pitch; //!< pitch in semitones (69 = A440)
     float loud;  //!< dynamic corresponding to MIDI velocity
     double dur;   //!< duration in seconds (normally to release point)
@@ -315,7 +315,7 @@ public:
 class Alg_update : public Alg_event {
 public:
     ~Alg_update() override = default;
-    Alg_update(Alg_update *); //!< copy constructor
+    Alg_update(Alg_update *update); //!< copy constructor
     Alg_parameter parameter; //!< an update contains one attr/value pair
 
 

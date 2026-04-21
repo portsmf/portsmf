@@ -1,4 +1,4 @@
-//! \file allegrosmfwr.cpp -- Allegro Standard Midi File Write
+//! \file allegrosmfwr.cpp Allegro Standard Midi File Write
 
 #include <algorithm>
 #include <cmath>
