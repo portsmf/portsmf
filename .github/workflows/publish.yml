@@ -26,7 +26,7 @@ jobs:
           fetch-depth: 0
       - name: Build
         run: |
-          cmake -S . -B build -DBUILD_DOCS=ON && cmake --build build
+          cmake -S . -B build && cmake --build build --target doc
       - name: Touch .nojekyll
         run: |
           touch build/doc/html/.nojekyll

@@ -1,17 +1,23 @@
-find_package(Doxygen REQUIRED)
+FIND_PACKAGE(Doxygen)
 
-set(DOXYGEN_INPUT_DIR ${PROJECT_SOURCE_DIR})
-set(DOXYGEN_OUTPUT_DIR ${PROJECT_BINARY_DIR}/doc)
+IF(DOXYGEN_FOUND OR Doxygen_FOUND)
+  SET(DOXYGEN_INPUT_DIR ${PROJECT_SOURCE_DIR})
+  SET(DOXYGEN_OUTPUT_DIR ${PROJECT_BINARY_DIR}/doc)
 
-set(DOXYGEN_CONFIGURED_INPUT ${DOXYGEN_OUTPUT_DIR}/doxyfile)
-configure_file(${DOXYGEN_INPUT_DIR}/doc/Doxyfile.in ${DOXYGEN_CONFIGURED_INPUT} @ONLY)
+  CONFIGURE_FILE(${CMAKE_CURRENT_SOURCE_DIR}/Doxyfile.in ${CMAKE_CURRENT_BINARY_DIR}/Doxyfile @ONLY)
 
-add_custom_target(doc ALL
-  COMMAND ${CMAKE_COMMAND} -E echo_append "Building documentation..."
-  COMMAND ${DOXYGEN_EXECUTABLE} ${DOXYGEN_CONFIGURED_INPUT}
-  COMMAND ${CMAKE_COMMAND} -E echo "Done."
-  WORKING_DIRECTORY ${DOXYGEN_INPUT_DIR})
+  ADD_CUSTOM_TARGET(doc
+    COMMAND ${DOXYGEN_EXECUTABLE} ${CMAKE_CURRENT_BINARY_DIR}/Doxyfile
+    WORKING_DIRECTORY ${DOXYGEN_INPUT_DIR}
+    COMMENT "Generating documentation with Doxygen"
+    SOURCES Doxyfile.in)
 
-install(FILES ${DOXYGEN_OUTPUT_DIR}/html
-  DESTINATION ${CMAKE_INSTALL_DOCDIR}
-  COMPONENT doc)
+  # FIXME: The Github runner tries to install docs without actually
+  # building them first. This is certainly a skill issue on my part.
+  # The OPTIONAL here should be removed once I figure out how to make
+  # the install step properly depend upon the doc custom target.
+  INSTALL(FILES ${DOXYGEN_OUTPUT_DIR}/html
+    DESTINATION ${CMAKE_INSTALL_DOCDIR}
+    COMPONENT doc
+    OPTIONAL)
+ENDIF()
