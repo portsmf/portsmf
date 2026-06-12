@@ -194,7 +194,7 @@ public:
 #define ALG_TIMESIG_DEN 8 //!< "timesig_den"
 #define ALG_OTHER 9 //!< any other value
 
-//! abstract superclass of Alg_note and Alg_update:
+//! Abstract superclass of Alg_note and Alg_update
 class Alg_event {
 protected:
     bool selected;
@@ -859,7 +859,7 @@ public:
 };
 
 
-//! \brief Alg_time_sigs is a dynamic array of time signatures
+//! \brief A dynamic array of time signatures
 //!
 //! The default (empty) time_sigs has 4/4 time at beat 0.
 //! Each time_sig object in time_sigs represents the beginning

@@ -8,6 +8,7 @@ EXTRACT_STATIC         = YES
 SORT_MEMBERS_CTORS_1ST = YES
 QUIET                  = YES
 INPUT                  = @PROJECT_SOURCE_DIR@/README.md \
+                         @CMAKE_CURRENT_SOURCE_DIR@/allegro.md \
                          @PROJECT_SOURCE_DIR@/include \
                          @PROJECT_SOURCE_DIR@/src
 FILE_PATTERNS          = *.c \
@@ -24,4 +25,5 @@ FILE_PATTERNS          = *.c \
                          *.h++ \
                          *.dox
 USE_MDFILE_AS_MAINPAGE = @PROJECT_SOURCE_DIR@/README.md
+HTML_EXTRA_STYLESHEET  = @CMAKE_CURRENT_SOURCE_DIR@/extra.css
 GENERATE_LATEX         = NO
