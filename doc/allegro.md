@@ -2,11 +2,11 @@
 
 Allegro is a simple, declarative, text-based language for music representation. Allegro is very similar to Adagio, but it is extended somewhat to make the representation of beats and attributes simpler and more uniform. Allegro is also intended to represent Standard MIDI files, and there are standard attribute names and encodings in Allegro for metadata found in Standard MIDI files.
 
-Allegro is designed for use with Aura, and there is a mapping from Allegro to messages in Aura. There is an internal, object representation of Allegro as well, which is implemented in both C++ and Serpent (the Aura scripting language).
+In addition to the language, there is an internal, object representation of Allegro, which is implemented in both C++ and Serpent (a Python-like scripting language). Allegro files can be read into or written from Audacity. In particular, Audacity can convert binary Standard MIDI files into more human-readable Allegro files.
 
 ## Basic Concepts
 
- Allegro represents notes, attribute/value pairs (typically updates to notes), and timing information in the form of tempo and beats. Allegro is a free-form ASCII text language similar to Adagio (a notation introduced in the CMU MIDI Toolkit). In its simplest usage, every line of text represents a note. Every note is a set of attributes separated by white space and ending with a newline. For example, the following indicates a quarter note at middle C:
+Allegro represents notes, attribute/value pairs (typically updates to notes), and timing information in the form of tempo and beats. Allegro is a free-form ASCII text language similar to Adagio (a notation introduced in the CMU MIDI Toolkit). In its simplest usage, every line of text represents a note. Every note is a set of attributes separated by white space and ending with a newline. For example, the following indicates a quarter note at middle C:
 
 ```
 Q C4
@@ -25,7 +25,7 @@ The fields are:
 - `pitch`: The pitch of a note, expressed in the same units as MIDI, but this is a float rather than an integer so that precise tuning can be expressed. Note that in MIDI, pitch is implied by the key, but in Allegro, the key is just a name or a way to refer to a particular sound. The pitch can be specified separately. (If you are working with MIDI, you will probably want to specify pitch symbolically, e.g. C4, or as an integer, e.g. P60. The key number will default to the pitch.)
 - `loud`: A parameter corresponding to MIDI velocity, but this is a float rather than an integer.
 
- In addition, notes can have attribute/value pairs. In Allegro, the last letter of the attribute conveys the type of its value. For example, "bendr" should be read as attribute "bend" of type "r"eal. An "r" suffix is for "r"eal values (double precision floats). When used with Aura, notes attributes are represented by a sequence of messages, each generally conveying an attribute/value pair along with the &lt;chan, key&gt; note name. If an update applies to all notes on a channel, the key value is specified as -1. Some standard attributes are listed below:
+In addition, notes can have attribute/value pairs. In Allegro, the last letter of the attribute conveys the type of its value. For example, `bendr` should be read as attribute "bend" of type "r"eal. An "r" suffix is for "r"eal values (double precision floats). Some standard attributes are listed below:
 
 | **MIDI Message Type** | **Allegro Attribute** |
 |-----------------------|-----------------------|
@@ -69,7 +69,7 @@ then channel 1207 (decimal) will indicate track 12, midi channel 7. To preserve 
 
 ## Allegro Syntax
 
- Because Allegro has no nested expressions or complicated syntax, I will not present a detailed formal grammar. The previous section outlined the semantics of attributes. This section describes the syntax to denote an attribute. Additional syntax and semantics for tempo and beats is given in the next section.
+Because Allegro has no nested expressions or complicated syntax, I will not present a detailed formal grammar. The previous section outlined the semantics of attributes. This section describes the syntax to denote an attribute. Additional syntax and semantics for tempo and beats is given in the next section.
 
 Allegro notes and updates are denoted by a line of text containing a set of attributes. In addition, if a line begins with the character `#`, the line is not interpreted as a note or update. If the line begins with `# ` (hash, space) the line is a comment. The characters "#track" denote the beginning of a new track. The "new track" syntax is:
 
@@ -93,14 +93,12 @@ Allegro events always carry a channel number, but some data is not channel-speci
 | `pitch` | `Pr`, `Afn`, `An`, `Asn`, ..., `Gfn`, `Gn`, `Gsn` |
 | `dur` | `Ur`, `S`, `I`, `Q`, `H`, `W`, etc. |
 | `time` | `Tr`, `TS`, ..., `TW`, etc. |
-| (next time is not an Aura attribute) | `Nr`, `NS`, ..., `NW`, etc. |
+| (next time is not an stored attribute) | `Nr`, `NS`, ..., `NW`, etc. |
 | (syntax for additional attributes/value pairs) | `-attribute:value` |
 
 ### Notes vs. Updates
 
-A new note or sound object is created by the appearance of a field with any of the following initial letters: `P`, `A`, `B`, `C`, `D`, `E`, `F`, `G` (pitches), or `U` (duration). If neither an explicit pitch or duration appears, then an update is generated. In terms of Aura streams, an update means that no "gater" attribute will be generated, and no sound resource will be allocated. It is assumed (but not checked) that an update applies to an existing resource and merely modifies some of its attributes.
-
-Since a pitch specification indicates a new note, use something like `-pitchr:60` to update pitch. Consider using `bendr` instead, or generate notes anyway and send them to a synthesizer that implements something like MIDI "mono" mode.
+A new note or sound object is created by the appearance of a field with any of the following initial letters: `P`, `A`, `B`, `C`, `D`, `E`, `F`, `G` (pitches), or `U` (duration). If neither an explicit pitch or duration appears, then an update is generated. Notes are considered to be objects, while update are considered to be messages that update or modify an existing objects. Thus, updates always refer to some existing object. In MIDI, the model is somewhat ambiguous, but typically a channel or (channel, key_number) pair is considered to be an object, and an update such as aftertouch would refer to one of these objects, as opposed to creating a new note.
 
 ### Sticky Attributes
 
@@ -112,7 +110,7 @@ If the key (`K`) is specified and less than 128, and no pitch is specified, then
 
 If `keyi` (`K`) is not specified, control changes will have no `keyi` and therefore apply to the channel as a whole. This also corresponds to MIDI. The one exception to this is that pressure (polyphonic aftertouch) MIDI messages need a key number. If you specify pitch along with the control change, a new note will be generated. Therefore, to issue a polyphonic aftertouch message without a new note, you should use something like `V5 KG4 -pressurer:50`, which says "on channel 5, pressure 50 on key 67 (g above middle c)."
 
-To get more general semantics, every note can have an identifier. This allows multiple notes with the same pitch or for pitches of notes to change without ambiguity. Identifiers are specified by the `keyi` (`K`) attribute, for example `V5 K279 G4` creates a note (g above middle c) and labels it with the identifier 279. With this style, all updates should normally have a `keyi` (`K`) attribute, for example `V5 K279 -pressurer:50` sends a pressure changes to note 279. If `K` is omitted from a control change specification, then the control change applies to the channel, just as with the "MIDI style" in the previous paragraph. *In other words, there is an implicit `K-1` attribute on all non-note attribute specifications.* Thus, `keyi` is not a "sticky" attribute.
+To get more general semantics (beyond MIDI), every note can have an identifier. This allows multiple notes with the same pitch or for pitches of notes to change without ambiguity. Identifiers are specified by the `keyi` (`K`) attribute, for example `V5 K279 G4` creates a note (g above middle c) and labels it with the identifier 279. With this style, all updates should normally have a `keyi` (`K`) attribute, for example `V5 K279 -pressurer:50` sends a pressure changes to note 279. If `K` is omitted from a control change specification, then the control change applies to the channel, just as with the "MIDI style" in the previous paragraph. *In other words, there is an implicit `K-1` attribute on all non-note attribute specifications.* Thus, `keyi` is not a "sticky" attribute.
 
 The initial default time is zero. The default time for the next event is computed as follows: Set the default time to the time of the current event. If a `N` ("N"ext) attribute is given, the default time is incremented by the value of the `N` attribute. Otherwise, if the current event is a note, increment the default time by the duration of the note. This results in a new default, which may be overridden by a `T` attribute in the next event.
 
@@ -163,7 +161,7 @@ The default time of the next note, sound or update can be specified just like du
 
 ## Tempo Maps
 
-The goal of tempo specification in Allegro is to allow flexibility without getting overly complex. There is one and only one tempo map per score. This is a limitation, but it is certainly possible to have multiple score objects when multiple tempo maps are required. Tempo maps can be specified by entering beats or by entering tempo changes. Internally, a tempo map is a sequence of pairs indicating time and beat. Tempo is assumed to be constant between any two adjacent points in the tempo map. In a stream of Aura events, tempo map events are translated into two attributes: `beatr` and `tempor`. The `beatr` attribute gives the current beat, and the `tempor` attribute gives the tempo change. The use of `tempor` allows the receiver to respond to tempo changes without waiting for the next beat.
+The goal of tempo specification in Allegro is to allow flexibility without getting overly complex. There is one and only one tempo map per score. This is a limitation, but it is certainly possible to have multiple score objects when multiple tempo maps are required. Tempo maps can be specified by entering beats or by entering tempo changes. Internally, a tempo map is a sequence of pairs indicating time and beat. Tempo is assumed to be constant between any two adjacent points in the tempo map.
 
 When the tempo map is manipulated, either the time or the beat position must change. In Allegro, changes to the tempo map also change event times so that their beat positions remain unchanged.
 
