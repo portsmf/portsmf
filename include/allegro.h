@@ -1,11 +1,8 @@
 //! \file
 //! Portsmf (also known as Allegro):
-//! music representation system, with
-//!      extensible in-memory sequence structure
-//!      upward compatible with MIDI
-//!      implementations in C++ and Serpent
-//!      external, text-based representation
-//!      compatible with Aura
+//! Music representation system, with extensible in-memory sequence
+//! structure upward compatible with MIDI implementations in C++ and
+//! Serpent external, text-based representation compatible with Aura
 //!
 //! SERIALBUFFER CLASS
 //!
@@ -58,24 +55,22 @@
 #define ALG_EPS 0.000001 //!< epsilon
 #define ALG_DEFAULT_BPM 100.0 //!< default tempo
 
-//! are d1 and d2 within epsilon of each other?
+//! Checks if \p d1 and \p d2 within \p epsilon of each other
 bool within(double d1, double d2, double epsilon);
 
-char *heapify(const char *s); //!< put a string on the heap
+char *heapify(const char *s); //!< Put a string on the heap
 
-
-//! Alg_attribute is an atom in the symbol table
-//! with the special addition that the last
-//! character is prefixed to the string; thus,
-//! the attribute 'tempor' (a real) is stored
-//! as 'rtempor'. To get the string name, just
-//! use attribute+1.
+//! Alg_attribute is an atom in the symbol table with the special
+//! addition that the last character is prefixed to the string; for
+//! example, the attribute 'tempor' (a real number representing tempo)
+//! is stored as 'rtempor'. To get the string name, just use attribute+1
+//! (see \ref alg_attr_name).
 typedef const char *Alg_attribute;
 #define alg_attr_name(a) ((a) + 1)
 #define alg_attr_type(a) (*(a))
 
-//! Alg_atoms is a symbol table of Alg_attributes and other
-//! unique strings
+//! \brief Symbol table of \ref Alg_attribute objects and other unique
+//! strings
 class Alg_atoms {
 public:
     Alg_atoms() {
@@ -104,7 +99,7 @@ private:
     long len;
     Alg_attribute *atoms;
 
-    //! insert an Attriubute not in table after moving attr to heap
+    //! Insert an Attribute not in table after moving attr to heap
     Alg_attribute insert_new(const char *name, char attr_type);
     void expand(); // make more space
 };
@@ -118,15 +113,12 @@ private:
 extern DLLEXPORT Alg_atoms symbol_table;
 
 
-//! an attribute/value pair. Since Alg_attribute names imply type,
-//! we try to keep attributes and values packaged together as
-//! Alg_parameter class
+//! \brief An attribute/value pair
+//!
+//! Since Alg_attribute names imply type, we try to keep attributes and
+//! values packaged together as Alg_parameter class
 class Alg_parameter {
 public:
-    //! This constructor guarantees that an Alg_parameter can be
-    //! deleted safely without further initialization. It does not
-    //! do anything useful, so it is expected that the creator will
-    //! set attr and store a value in the appropriate union field.
     Alg_attribute attr;
     union {
         double r;//!< real
@@ -136,6 +128,10 @@ public:
         const char *a; //!< symbol (atom)
     }; //!< anonymous union
 
+    //! This constructor guarantees that an Alg_parameter can be
+    //! deleted safely without further initialization. It does not
+    //! do anything useful, so it is expected that the creator will
+    //! set attr and store a value in the appropriate union field.
     Alg_parameter() { attr = "i"; }
     ~Alg_parameter();
     void copy(Alg_parameter *); //!< copy from another parameter
@@ -146,7 +142,7 @@ public:
 };
 
 
-//! a list of attribute/value pairs
+//! A list of attribute/value pairs
 class Alg_parameters {
 public:
     class Alg_parameters *next;
@@ -195,6 +191,8 @@ public:
 #define ALG_OTHER 9 //!< any other value
 
 //! Abstract superclass of Alg_note and Alg_update
+// NOTE: there is no Alg_event() constructor because Alg_event is an
+// abstract class.
 class Alg_event {
 protected:
     bool selected;
@@ -205,16 +203,25 @@ public:
     double time;
     long chan;
     virtual void show() = 0;
-    // Note: there is no Alg_event() because Alg_event is an abstract class.
-    bool is_note() { return (type == 'n'); }   //!< tell whether an Alg_event is a note
-    bool is_update() { return (type == 'u'); } //!< tell whether an Alg_event is a parameter update
-    char get_type() { return type; }   //!< return 'n' for note, 'u' for update
-    int get_type_code();  //!< 1 = volume change,      2 = pitch bend,
-                          //!< 3 = control change,     4 = program change,
-                          //!< 5 = pressure change,    6 = key signature,
-                          //!< 7 = time sig numerator, 8 = time sig denominator
+
+    //! Check whether an Alg_event is a note
+    bool is_note() { return (type == 'n'); }
+
+    //! Check whether an Alg_event is a parameter update
+    bool is_update() { return (type == 'u'); }
+
+    //! \returns 'n' for note, 'u' for update
+    char get_type() { return type; }
+
+    //! 1 = volume change,      2 = pitch bend,
+    //! 3 = control change,     4 = program change,
+    //! 5 = pressure change,    6 = key signature,
+    //! 7 = time sig numerator, 8 = time sig denominator
+    int get_type_code();
+
     bool get_selected() { return selected; }
     void set_selected(bool b) { selected = b; }
+
     // Note: notes are identified by a (channel, identifier) pair.
     // For midi, the identifier is the key number (pitch). The identifier
     // does not have to represent pitch; it's main purpose is to identify
@@ -247,53 +254,80 @@ public:
     void set_loud(float);
     void set_duration(double);
 
-    //! Notes have lists of attribute values. Attributes are converted
-    //! to/from strings in this API to avoid explicit use of Alg_attribute
-    //! types. Attribute names end with a type designation: 's', 'r', 'l',
-    //! 'i', or 'a'.
+    //! \brief Test if note has attribute/value pair
     //!
-    bool has_attribute(const char *attr);      //!< test if note has attribute/value pair
-    char get_attribute_type(const char *attr); //!< get the associated type:
-        //!< 's' = string,
-        //!< 'r' = real (double), 'l' = logical (bool), 'i' = integer (long),
-        //!< 'a' = atom (char *), a unique string stored in Alg_seq
-    //! get the string value
+    //! Notes have lists of attribute values. Attributes are converted
+    //! to/from strings in this API to avoid explicit use of
+    //! Alg_attribute types. Attribute names end with a type
+    //! designation: `'s'`, `'r'`, `'l'`, `'i'`, or `'a'`.
+    bool has_attribute(const char *attr);
+
+    //! \brief Get the associated attribute type
+    //!
+    //! `'s'` = string, `'r'` = real (`double`), `'l'` = logical
+    //! (`bool`), `'i'` = integer (`int32_t`), `'a'` = atom (`char*`),
+    //! a unique string stored in Alg_seq
+    char get_attribute_type(const char *attr);
+
+    //! Get the string value
     const char *get_string_value(const char *attr, const char *value = nullptr);
-    //! get the real value
+
+    //! Get the real value
     double get_real_value(const char *attr, double value = 0.0);
-    //! get the logical value
+
+    //! Get the logical value
     bool get_logical_value(const char *attr, bool value = false);
-    //! get the integer value
+
+    //! Get the integer value
     long get_integer_value(const char *attr, int32_t value = 0);
-    //! get the atom value
+
+    //! Get the atom value
     const char *get_atom_value(const char *attr, const char *value = nullptr);
-    void delete_attribute(const char *attr);   //!< delete an attribute/value pair
-        //!< (ignore if no matching attribute/value pair exists)
+
+    //! \brief Delete an attribute/value pair
+    //!
+    //! (ignore if no matching attribute/value pair exists)
+    void delete_attribute(const char *attr);
 
     //! Some attribute/value methods. These fail if this is not an update.
     //! Attributes are converted to/from strings to avoid explicit use
     //! of Alg_attribute types.
     //!
     const char *get_attribute();    //!< get the update's attribute (string)
-    char get_update_type();   //!< get the update's type: 's' = string,
-        //!< 'r' = real (double), 'l' = logical (bool), 'i' = integer (long),
-        //!< 'a' = atom (char *), a unique string stored in Alg_seq
-    const char *get_string_value(); //!< get the update's string value
-        //!< Notes: Caller does not own the return value. Do not modify.
-        //!< Do not use after underlying Alg_seq is modified.
+
+    //! \brief Get the update's type
+    //!
+    //! 's' = string, 'r' = real (`double`), 'l' = logical (`bool`),
+    //! 'i' = integer (`int32_t`), 'a' = atom (`char*`), a unique string
+    //! stored in Alg_seq
+    char get_update_type();
+
+    //! \brief Get the update's string value
+    //!
+    //! Caller does not own the return value. Do not modify. Do
+    //! not use after underlying Alg_seq is modified.
+    const char *get_string_value();
+
     double get_real_value();  //!< get the update's real value
     bool get_logical_value(); //!< get the update's logical value
     int32_t get_integer_value(); //!< get the update's integer value
-    const char *get_atom_value();   //!< get the update's atom value
-        //!< Notes: Caller does not own the return value. Do not modify.
-        //!< The return value's lifetime is forever.
+
+    //! \brief Get the update's atom value
+    //!
+    //! Caller does not own the return value. Do not modify. The return
+    //! value's lifetime is forever.
+    const char *get_atom_value();
 
     //! Auxiliary function to aid in editing tracks
     //! Returns true if the event overlaps the given region
     bool overlap(double t, double len, bool all);
 
-    const char *GetDescription(); //!< computes a text description of this event
-    //!< the result is in a static buffer, not thread-safe, just for debugging.
+    //! \brief Computes a text description of this event
+    //!
+    //! The result is in a static buffer, not thread-safe, for
+    //! debugging purposes only.
+    const char *GetDescription();
+
     Alg_event() { selected = false; }
     virtual ~Alg_event() = default;
 };
@@ -324,7 +358,7 @@ public:
 };
 
 
-//! a sequence of Alg_event objects
+//! A sequence of Alg_event objects
 class Alg_events {
 private:
     long maxlen;
@@ -373,17 +407,21 @@ class Alg_event_list : public Alg_events {
 protected:
     char type; //!< 'e' Alg_event_list, 't' Alg_track, 's' Alg_seq
     static const char *last_error_message;
-    Alg_track *events_owner; //!< if this is an Alg_event_list,
-        //!< the events are owned by an Alg_track or an Alg_seq
+
+    //! If this is an Alg_event_list, the events are owned by an
+    //! Alg_track or an Alg_seq
+    Alg_track *events_owner;
+
     static int sequences;  //!< to keep track of sequence numbers
-    int sequence_number;   //!< this sequence number is incremented
-        //!< whenever an edit is performed on an Alg_track or Alg_seq.
-        //!< When an Alg_event_list is created to contain pointers to
-        //!< a subset of an Alg_track or Alg_seq (the events_owner),
-        //!< the Alg_event_list gets a copy of the events_owner's
-        //!< sequence_number. If the events_owner is edited, the pointers
-        //!< in this Alg_event_list will become invalid. This is detected
-        //!< (for debugging) as differing sequence_numbers.
+
+    //! This sequence number is incremented whenever an edit is
+    //! performed on an Alg_track or Alg_seq. When an Alg_event_list is
+    //! created to contain pointers to a subset of an Alg_track or
+    //! Alg_seq (the events_owner), the Alg_event_list gets a copy of
+    //! the events_owner's sequence_number. If the events_owner is
+    //! edited, the pointers in this Alg_event_list will become invalid.
+    //! This is detected (for debugging) as differing sequence_numbers.
+    int sequence_number;
 
     //! every event list, track, and seq has a duration.
     //! Usually the duration is set when the list is constructed, e.g.
@@ -443,7 +481,7 @@ public:
 };
 
 
-//! Alg_beat is used to contruct a tempo map
+//! Used to contruct a tempo map
 class Alg_beat {
 public:
     Alg_beat(double t, double b) {
@@ -454,7 +492,7 @@ public:
 };
 
 
-//! Alg_beats is a list of Alg_beat objects used in Alg_seq
+//! A list of \ref Alg_beat objects used in \ref Alg_seq
 class Alg_beats {
 private:
     long maxlen;
@@ -487,9 +525,9 @@ public:
     double last_tempo;
     bool last_tempo_flag;
     Alg_time_map() {
-        last_tempo = ALG_DEFAULT_BPM / 60.0; //!< note: this value ignored until
-                //!< last_tempo_flag is set; nevertheless, the default
-                //!< tempo is 100.
+        //! This value ignored until last_tempo_flag is set;
+        //! nevertheless, the default tempo is 100.
+        last_tempo = ALG_DEFAULT_BPM / 60.0;
         last_tempo_flag = true;
         refcount = 0;
     }
@@ -534,8 +572,8 @@ public:
 };
 
 
-//! Serial_buffer is an abstract class with common elements of
-//!     Serial_read_buffer and Serial_write_buffer
+//! \brief Abstract class with common elements of Serial_read_buffer
+//! and Serial_write_buffer
 class Serial_buffer {
   protected:
     char *buffer;
@@ -839,8 +877,9 @@ public:
 };
 
 
-//! Alg_time_sig represents a single time signature;
-//! although not recommended, time_signatures may have arbitrary
+//! \brief Represents a single time signature
+//!
+//! Although not recommended, time_signatures may have arbitrary
 //! floating point values, e.g. 4.5 beats per measure
 class Alg_time_sig {
 public:
@@ -859,7 +898,7 @@ public:
 };
 
 
-//! \brief A dynamic array of time signatures
+//! \brief A dynamic array of Alg_time_sig objects
 //!
 //! The default (empty) time_sigs has 4/4 time at beat 0.
 //! Each time_sig object in time_sigs represents the beginning
@@ -901,7 +940,7 @@ public:
 };
 
 
-//! a sequence of Alg_events objects
+//! A sequence of Alg_events objects
 class Alg_tracks {
 private:
     long maxlen;
@@ -931,12 +970,14 @@ public:
 typedef enum {
     alg_no_error = 0,      //!< no error reading Allegro or MIDI file
     alg_error_open = -800, //!< could not open Allegro or MIDI file
-    alg_error_syntax   //!< something found in the file that could not be parsed;
-    //!< generally you should ignore syntax errors or look at the printed error
-    //!< messages because there are some things in standard midi files that we do
-    //!< not handle; (maybe we should only set alg_error_syntax when there is a
-    //!< real problem with the file as opposed to when there is some warning
-    //!< message for the user)
+    //! Something found in the file that could not be parsed;
+    //! generally you should ignore syntax errors or look at the printed
+    //! error messages because there are some things in standard midi
+    //! files that we do not handle.
+    //! \todo Maybe we should only set alg_error_syntax when there is a
+    //! real problem with the file as opposed to when there is some
+    //! warning message for the user
+    alg_error_syntax
 } Alg_error;
 
 
@@ -972,8 +1013,9 @@ private:
                      void *&cookie, double &offset, double &time);
 public:
     ~Alg_iterator() { delete[] pending_events; }
-    bool note_off_flag; //!< remembers if we are iterating over note-off
-                        //!< events as well as note-on and update events
+    //! \brief Remembers if we are iterating over note-off events as
+    //! well as note-on and update events
+    bool note_off_flag;
     long length() { return len; }
     Alg_iterator(Alg_seq *s, bool note_off) {
         seq = s;
@@ -1016,9 +1058,10 @@ public:
 };
 
 
+//! \brief An array of Alg_events
+//!
 //! An Alg_seq is an array of Alg_events, each a sequence of Alg_event,
 //! with a tempo map and a sequence of time signatures
-//!
 class Alg_seq : public Alg_track {
 protected:
     Alg_iterator *pending; //!< iterator used internally by Alg_seq methods
@@ -1041,8 +1084,8 @@ public:
     Alg_seq() {
         basic_initialization();
     }
-    //! copy constructor -- if track is an Alg_seq, make a copy; if
-    //!    track is just an Alg_track, the track becomes track 0
+    //! Copy constructor—if \p track is an Alg_seq, make a copy; if
+    //! \p track is just an Alg_track, the track becomes track 0
     Alg_seq(Alg_track &track) { seq_from_track(track); }
     Alg_seq(Alg_track *track) { seq_from_track(*track); }
     void seq_from_track(Alg_track &tr);

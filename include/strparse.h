@@ -11,7 +11,9 @@ public:
     void skip_space();
     char peek();
     void get_nonspace_quoted(std::string &field);
-    //!< get the remaining characters, skipping initial spaces and final return
+
+    //! \brief Get the remaining characters, skipping initial spaces and
+    //! final return
     void get_remainder(std::string &field);
 };
 

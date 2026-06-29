@@ -2,7 +2,7 @@
 
 Allegro is a simple, declarative, text-based language for music representation. Allegro is very similar to Adagio, but it is extended somewhat to make the representation of beats and attributes simpler and more uniform. Allegro is also intended to represent Standard MIDI files, and there are standard attribute names and encodings in Allegro for metadata found in Standard MIDI files.
 
-In addition to the language, there is an internal, object representation of Allegro, which is implemented in both C++ and Serpent (a Python-like scripting language). Allegro files can be read into or written from Audacity. In particular, Audacity can convert binary Standard MIDI files into more human-readable Allegro files.
+In addition to the language, there is an internal, object representation of Allegro, which is implemented in both C++ and [Serpent](https://www.cs.cmu.edu/~music/cmp/serpent/doc/serpent.htm) (a Python-like scripting language). Allegro files can be read into or written from Audacity. In particular, Audacity can convert binary Standard MIDI files into more human-readable Allegro files.
 
 ## Basic Concepts
 
@@ -219,7 +219,7 @@ An important aspect of this design is to support editing and manipulation of dat
 
 ## Internal Representation
 
-In Serpent, the representation is a class called `Seq`, containing the fields `Notes` and `Map`. `Notes` is a sequence of `Events`, and `Map` is a sequence of time/beat pairs.
+In [Serpent](https://www.cs.cmu.edu/~music/cmp/serpent/doc/serpent.htm), the representation is a class called `Seq`, containing the fields `Notes` and `Map`. `Notes` is a sequence of `Events`, and `Map` is a sequence of time/beat pairs.
 
 An `Event` has fields `time`, `key`, and `channel`. Subclasses of `Event` include `Note` and `Update`. A `Note` has fields `dur`, `pitch`, `loud`, and `attributes` (attributes is a dictionary of attribute:value pairs). An `Update` has additional fields `attribute`, and `value`.
 
