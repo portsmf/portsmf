@@ -1,3 +1,6 @@
+#include <cstddef>
+#include <cstdint>
+
 #define NOTEOFF 0x80
 #define NOTEON 0x90
 #define PRESSURE 0xa0
@@ -55,23 +58,23 @@ protected:
     virtual void Mf_pitchbend(int,int,int) = 0;
     virtual void Mf_program(int,int) = 0;
     virtual void Mf_chanpressure(int,int) = 0;
-    virtual void Mf_sysex(int,unsigned char*) = 0;
-    virtual void Mf_arbitrary(int,unsigned char*) = 0;
-    virtual void Mf_metamisc(int,int,unsigned char*) = 0;
+    virtual void Mf_sysex(size_t, unsigned char*) = 0;
+    virtual void Mf_arbitrary(size_t, unsigned char*) = 0;
+    virtual void Mf_metamisc(int, size_t, unsigned char*) = 0;
     virtual void Mf_seqnum(int) = 0;
     virtual void Mf_smpte(int,int,int,int,int) = 0;
     virtual void Mf_timesig(int,int,int,int) = 0;
     virtual void Mf_tempo(int) = 0;
     virtual void Mf_keysig(int,int) = 0;
-    virtual void Mf_sqspecific(int,unsigned char*) = 0;
-    virtual void Mf_text(int,int,unsigned char*) = 0;
+    virtual void Mf_sqspecific(size_t, unsigned char*) = 0;
+    virtual void Mf_text(int, size_t, unsigned char*) = 0;
 
 private:
     long Mf_toberead;
 
     long readvarinum();
-    long read32bit();
-    int read16bit();
+    int32_t read32bit();
+    int16_t read16bit();
     void msgenlarge();
     unsigned char *msg();
     int readheader();
@@ -79,11 +82,11 @@ private:
     void sysex();
     void msginit();
     int egetc();
-    int msgleng();
+    size_t msgleng();
 
     int readmt(const char*,int);
-    long to32bit(int,int,int,int);
-    int to16bit(int,int);
+    int32_t to32bit(int8_t, int8_t, int8_t, int8_t);
+    int16_t to16bit(int8_t, int8_t);
     void mferror(const char *);
     void badbyte(int);
     void metaevent(int);
@@ -91,8 +94,8 @@ private:
     void chanmessage(int,int,int);
 
     unsigned char *Msgbuff;
-    long Msgsize;
-    long Msgindex;
+    size_t Msgsize;
+    size_t Msgindex;
 };
 
 

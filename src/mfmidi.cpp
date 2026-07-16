@@ -57,7 +57,7 @@ int Midifile_reader::readmt(const char *s, int skip)
             errmsg = "EOF while expecting ";
             goto err;
         }
-        b[nread++] = c;
+        b[nread++] = static_cast<char>(c);
     }
     /* See if we found the 4 characters we're looking for */
     if (s[0] == b[0] && s[1] == b[1] && s[2] == b[2] && s[3] == b[3]) {
@@ -73,14 +73,8 @@ int Midifile_reader::readmt(const char *s, int skip)
         goto retry;
     }
     err:
-#if defined(_WIN32)
-#pragma warning(disable: 4996) // strcpy is safe since strings have known lengths
-#endif
     (void) strcpy(buff, errmsg);
     (void) strcat(buff, s);
-#if defined(_WIN32)
-#pragma warning(default: 4996) // turn it back on
-#endif
     mferror(buff);
     return(0);
 }
@@ -228,7 +222,7 @@ void Midifile_reader::readtrack()
             msginit();
 
             while (Mf_toberead > lookfor) {
-                unsigned char c = egetc();
+                c = egetc();
                 if (midifile_error) {
                     return;
                 }
@@ -307,19 +301,13 @@ void Midifile_reader::readtrack()
 void Midifile_reader::badbyte(int c)
 {
     char buff[32];
-#if defined(_WIN32)
-#pragma warning(disable: 4996) // safe in this case
-#endif
     (void) sprintf(buff,"unexpected byte: 0x%02x",c);
-#if defined(_WIN32)
-#pragma warning(default: 4996)
-#endif
     mferror(buff);
 }
 
 void Midifile_reader::metaevent(int type)
 {
-    int leng = msgleng();
+    size_t leng = msgleng();
     // made this unsigned to avoid sign extend
     unsigned char *m = msg();
 
@@ -455,53 +443,47 @@ long Midifile_reader::readvarinum()
     return value;
 }
 
-long Midifile_reader::to32bit(int c1, int c2, int c3, int c4)
+int32_t Midifile_reader::to32bit(int8_t c1, int8_t c2, int8_t c3, int8_t c4)
 {
-    long value = 0L;
-
-    value = (c1 & 0xff);
-    value = (value<<8) + (c2 & 0xff);
-    value = (value<<8) + (c3 & 0xff);
-    value = (value<<8) + (c4 & 0xff);
-    return value;
+    return (c1 << 24) | (c2 << 16) | (c3 << 8) | (c4);
 }
 
-int Midifile_reader::to16bit(int c1, int c2)
+int16_t Midifile_reader::to16bit(int8_t c1, int8_t c2)
 {
-    return ((c1 & 0xff) << 8) + (c2 & 0xff);
+    return (c1 << 8) | (c2);
 }
 
-long Midifile_reader::read32bit()
+int32_t Midifile_reader::read32bit()
 {
-    int c1, c2, c3, c4;
+    int8_t c1, c2, c3, c4;
 
-    c1 = egetc();
+    c1 = static_cast<int8_t>(egetc());
     if (midifile_error) {
         return 0;
     }
-    c2 = egetc();
+    c2 = static_cast<int8_t>(egetc());
     if (midifile_error) {
         return 0;
     }
-    c3 = egetc();
+    c3 = static_cast<int8_t>(egetc());
     if (midifile_error) {
         return 0;
     }
-    c4 = egetc();
+    c4 = static_cast<int8_t>(egetc());
     if (midifile_error) {
         return 0;
     }
     return to32bit(c1, c2, c3, c4);
 }
 
-int Midifile_reader::read16bit()
+int16_t Midifile_reader::read16bit()
 {
-    int c1, c2;
-    c1 = egetc();
+    int8_t c1, c2;
+    c1 = static_cast<int8_t>(egetc());
     if (midifile_error) {
         return 0;
     }
-    c2 = egetc();
+    c2 = static_cast<int8_t>(egetc());
     if (midifile_error) {
         return 0;
     }
@@ -551,7 +533,7 @@ unsigned char *Midifile_reader::msg()
     return Msgbuff;
 }
 
-int Midifile_reader::msgleng()
+size_t Midifile_reader::msgleng()
 {
     return Msgindex;
 }
@@ -569,7 +551,7 @@ void Midifile_reader::msgenlarge()
 {
     unsigned char *newmess;
     unsigned char *oldmess = Msgbuff;
-    int oldleng = Msgsize;
+    size_t oldleng = Msgsize;
 
     Msgsize += MSGINCREMENT;
     newmess = static_cast<unsigned char *>(Mf_malloc((sizeof(unsigned char) * Msgsize)));

@@ -48,7 +48,7 @@ void parameter_print(std::ostream &file, Alg_parameter *p)
     } /* switch (p->attr_type()) */
 }
 
-Alg_event *Alg_seq::write_track_name(std::ostream &file, int n,
+Alg_event *Alg_seq::write_track_name(std::ostream &file, size_t n,
                                         Alg_events &events)
 // write #track <n> <trackname-or-sequencename>
 // if we write the name on the "#track" line, then we do *not* want
@@ -61,7 +61,7 @@ Alg_event *Alg_seq::write_track_name(std::ostream &file, int n,
     const char *attr = symbol_table.insert_string(
                                n == 0 ? "seqnames" : "tracknames");
     // search for name in events with timestamp of 0
-    for (int i = 0; i < events.length(); i++) {
+    for (size_t i = 0; i < events.length(); i++) {
         Alg_event *ue = events[i];
         if (ue->time > 0) {
             break;
@@ -82,7 +82,6 @@ Alg_event *Alg_seq::write_track_name(std::ostream &file, int n,
 
 void Alg_seq::write(std::ostream &file, bool in_secs, double offset)
 {
-    int i, j;
     if (in_secs) {
         convert_to_seconds();
     } else {
@@ -91,7 +90,7 @@ void Alg_seq::write(std::ostream &file, bool in_secs, double offset)
     file << "#offset " << offset << std::endl;
     Alg_event *update_to_skip = write_track_name(file, 0, track_list[0]);
     Alg_beats &beats = time_map->beats;
-    for (i = 0; i < beats.len - 1; i++) {
+    for (size_t i = 0; i < beats.len - 1; i++) {
         Alg_beat *b = &(beats[i]);
         if (in_secs) {
             file << "T" << TIMFMT << b->time;
@@ -113,7 +112,7 @@ void Alg_seq::write(std::ostream &file, bool in_secs, double offset)
     }
 
     // write the time signatures
-    for (i = 0; i < time_sig.length(); i++) {
+    for (size_t i = 0; i < time_sig.length(); i++) {
         Alg_time_sig &ts = time_sig[i];
         double time = ts.beat;
         if (in_secs) {
@@ -130,13 +129,13 @@ void Alg_seq::write(std::ostream &file, bool in_secs, double offset)
         }
     }
 
-    for (j = 0; j < track_list.length(); j++) {
+    for (size_t j = 0; j < track_list.length(); j++) {
         Alg_events &notes = track_list[j];
         if (j != 0) {
             update_to_skip = write_track_name(file, j, notes);
         }
         // now write the notes at beat positions
-        for (i = 0; i < notes.length(); i++) {
+        for (size_t i = 0; i < notes.length(); i++) {
             Alg_event *e = notes[i];
             // if we already wrote this event as a track or sequence name,
             // do not write it again

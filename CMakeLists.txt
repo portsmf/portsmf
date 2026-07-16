@@ -13,9 +13,9 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 if(CMAKE_CXX_COMPILER_ID MATCHES "Clang"
    OR CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
-  add_compile_options(-Wall -Wextra -pedantic)
+  add_compile_options(-Wall -Wextra -pedantic -Wno-deprecated-declarations)
 elseif(CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
-  add_compile_options(/W4)
+  add_compile_options(/W4 /D_CRT_SECURE_NO_WARNINGS)
 endif()
 
 option(BUILD_SHARED_LIBS "Build dynamic library" ON)

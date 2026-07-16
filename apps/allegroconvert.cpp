@@ -71,8 +71,7 @@ int main(int argc, char *argv[])
     bool tempo_flag = false;
     char *ext = nullptr;
 
-    int i = 1;
-    while (i < argc - 1) {
+    for (int i = 1; i < argc - 1; i++) {
         if (argv[i][0] != '-') { print_help(); }
         if (argv[i][1] == 'm') { midifile = true; }
         else if (argv[i][1] == 'a') { allegrofile = true; }
@@ -84,12 +83,11 @@ int main(int argc, char *argv[])
         } else if (argv[i][1] == 'f') {
             flatten_flag = true;
         } else { print_help(); }
-        i++;
     }
     // Do not use both -t and -f:
     if (tempo_flag & flatten_flag) { print_help(); }
 
-    int len = strlen(filename);
+    size_t len = strlen(filename);
     if (!midifile && !allegrofile) {
         if (len < 4) { print_help(); } // no extension, need -m or -a
         ext = filename + len - 4;
@@ -123,11 +121,11 @@ int main(int argc, char *argv[])
         seq->smf_write(outfilename);
     }
 
-    int events = 0;
-    for (i = 0; i < seq->track_list.length(); i++) {
+    size_t events = 0;
+    for (size_t i = 0; i < seq->track_list.length(); i++) {
         events += seq->track_list[i].length();
     }
-    printf("%ld tracks, %d events\n", seq->track_list.length(), events);
+    printf("%ld tracks, %zu events\n", seq->track_list.length(), events);
     printf("wrote %s\n", outfilename);
     
     /* DELETE THE DATA */

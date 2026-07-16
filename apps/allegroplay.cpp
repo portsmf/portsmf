@@ -54,7 +54,7 @@ int main(int argc, char *argv[])
     }
 
     if (!midifile && !allegrofile) {
-        int len = strlen(filename);
+        size_t len = strlen(filename);
         if (len < 4) { print_help(); } // no extension, need -m or -a
         char *ext = filename + len - 4;
         if (strcmp(ext, ".mid") == 0) { midifile = true; }
@@ -63,12 +63,12 @@ int main(int argc, char *argv[])
     }
     Alg_seq seq(filename, midifile);
 
-    int events = 0;
-    for (i = 0; i < seq.tracks(); i++) {
+    size_t events = 0;
+    for (size_t j = 0; j < seq.tracks(); j++) {
         events += seq.track(i)->length();
     }
     if (interactive) {
-        printf("%d tracks, %d events\n", seq.tracks(), events);
+        printf("%zu tracks, %zu events\n", seq.tracks(), events);
     }
     /* PLAY THE FILE VIA MIDI: */
     if (interactive) {
