@@ -1,5 +1,8 @@
 name: publish
-on: push
+on:
+  workflow_dispatch: # allow manual run
+  push:
+    branches: [ main ] # only auto-run on pushing to main branch
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
@@ -12,24 +15,20 @@ jobs:
     steps:
       - name: Install Graphviz
         run: |
-          sudo apt-get update
-          sudo apt-get install graphviz
+          sudo apt-get update -y
+          sudo apt-get install -y --no-install-recommends --no-install-suggests graphviz
       - name: Install Doxygen
         run: |
-          DOXYGEN_VERSION="1.16.1"
+          DOXYGEN_VERSION="1.18.0"
           wget -q "https://github.com/doxygen/doxygen/releases/download/Release_$(echo $DOXYGEN_VERSION | tr '.' '_')/doxygen-${DOXYGEN_VERSION}.linux.bin.tar.gz"
           tar -xzf doxygen-${DOXYGEN_VERSION}.linux.bin.tar.gz
           sudo mv doxygen-${DOXYGEN_VERSION}/bin/doxygen /usr/local/bin/doxygen
           rm -rf doxygen-${DOXYGEN_VERSION}*
       - uses: actions/checkout@v6
-        with:
-          fetch-depth: 0
       - name: Build
-        run: |
-          cmake -S . -B build && cmake --build build --target doc
+        run: cmake -S . -B build && cmake --build build --target doc
       - name: Touch .nojekyll
-        run: |
-          touch build/doc/html/.nojekyll
+        run: touch build/doc/html/.nojekyll
       - id: artifact
         uses: actions/upload-pages-artifact@v5
         with:

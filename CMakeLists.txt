@@ -19,6 +19,7 @@ elseif(CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
 endif()
 
 option(BUILD_SHARED_LIBS "Build dynamic library" ON)
+option(BUILD_APPS "Build example applications" OFF)
 
 add_library(PortSMF
   src/allegro.cpp
@@ -88,7 +89,6 @@ install(
   DESTINATION "${PORTSMF_INSTALL_CMAKEDIR}"
 )
 
-option(BUILD_APPS "Build example applications" OFF)
 if(BUILD_APPS)
   add_subdirectory(apps)
 endif()
