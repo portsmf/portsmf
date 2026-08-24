@@ -1,6 +1,5 @@
 //! \file
 
-#include <string>
 #include <cstring>
 #include <cctype>
 #include "strparse.h"

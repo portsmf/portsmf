@@ -1,9 +1,14 @@
 //! \file
 
-#include <cassert>
-#include <cstring>
-#include <string>
 #include <algorithm>
+#include <cassert>
+#include <cctype>
+#include <cmath>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
+#include <istream>
+#include <string>
 #include "strparse.h"
 #include "allegro.h"
 #include "algrd_internal.h"
@@ -14,25 +19,28 @@ class Alg_reader {
 public:
     std::istream *file;
     string input_line;
-    int line_no;
+    int line_no = 0;
     String_parse line_parser;
-    bool line_parser_flag;
+    bool line_parser_flag = false;
     string field;
-    bool error_flag;
+    bool error_flag = false;
     Alg_seq *seq;
-    double tsnum;
-    double tsden;
-    double offset;
-    bool offset_found;
+    double tsnum = 4.0;
+    double tsden = 4.0;
+    double offset = 0.0;
+    bool offset_found = false;
 
-    Alg_reader(std::istream *a_file, Alg_seq *new_seq);
+    //! The caller of the constructor owns \p new_seq and is responsible
+    //! for deleting it
+    Alg_reader(std::istream *a_file, Alg_seq *new_seq) : file{a_file}, seq{new_seq} {};
+
     void readline();
     Alg_parameters *process_attributes(Alg_parameters *attributes,
                                           double time);
     bool parse();
     long parse_chan(string &field);
     long parse_int(string &field);
-    int find_real_in(string &field, int n);
+    static int find_real_in(string &field, int n);
     double parse_real(string &field);
     void parse_error(string &field, long offset, const char *message);
     double parse_dur(string &field, double base);
@@ -41,10 +49,10 @@ public:
     long parse_key(string &field);
     double parse_pitch(string &field);
     long parse_after_key(int key, string &field, int n);
-    long find_int_in(string &field, int n);
-    bool parse_attribute(string &field, Alg_parameter *parm);
+    static long find_int_in(string &field, int n);
+    bool parse_attribute(string &field, Alg_parameter *param);
     bool parse_val(Alg_parameter *param, string &s, int i);
-    bool check_type(char type_char, Alg_parameter *param);
+    static bool check_type(char type_char, Alg_parameter *param);
 };
 
 
@@ -60,21 +68,6 @@ double Alg_reader::parse_pitch(string &field)
 }
 
 
-// it is the responsibility of the caller to delete
-// the seq
-Alg_reader::Alg_reader(std::istream *a_file, Alg_seq *new_seq)
-{
-    file = a_file; // save the file
-    line_parser_flag = false;
-    line_no = 0;
-    tsnum = 4; // default time signature
-    tsden = 4;
-    seq = new_seq;
-    offset = 0.0;
-    offset_found = false;
-}
-
-
 Alg_error alg_read(std::istream &file, Alg_seq *new_seq, double *offset_ptr)
     // read a sequence from allegro file
 {
@@ -84,7 +77,7 @@ Alg_error alg_read(std::istream &file, Alg_seq *new_seq, double *offset_ptr)
     if (!err && offset_ptr) {
         *offset_ptr = alg_reader.offset;
     }
-    return (err ? alg_error_syntax : alg_no_error);
+    return err ? alg_error_syntax : alg_no_error;
 }
 
 
@@ -142,7 +135,7 @@ Alg_parameters *Alg_reader::process_attributes(
 bool Alg_reader::parse()
 {
     int voice = 0;
-    int key = 60;
+    long key = 60;
     double loud = 100.0;
     double pitch = 60.0;
     double dur = 1.0;
@@ -162,7 +155,7 @@ bool Alg_reader::parse()
         bool new_pitch_flag = false; // "P" syntax or "A"-"G" syntax
         double new_pitch = 0.0;
         bool new_key_flag = false;   // "K" syntax
-        int new_key = 0;
+        long new_key = 0;
         Alg_parameters *attributes = nullptr;
         if (line_parser.peek() == '#') {
             // look for #track
@@ -181,9 +174,9 @@ bool Alg_reader::parse()
                 // skip over spaces, a sequence or track name cannot begin
                 // with leading blanks. Another decision is that the name
                 // must be at time zero
-                if (field.length() > 0) {
+                if (!field.empty()) {
                     // insert the field as sequence name or track name
-                    Alg_update *update = new Alg_update;
+                    auto *update = new Alg_update;
                     update->chan = -1;
                     update->time = 0;
                     update->set_identifier(-1);
@@ -342,7 +335,7 @@ bool Alg_reader::parse()
                 key = new_key;
             } else if (new_pitch_flag) {
                 // pitch was specified, but key was not; get key from pitch
-                key = static_cast<int>(new_pitch + 0.5); // round to integer key number
+                key = std::lround(new_pitch); // round to integer key number
             }
             if (new_pitch_flag) {
                 pitch = new_pitch;
@@ -358,7 +351,7 @@ bool Alg_reader::parse()
                 attributes = process_attributes(attributes, time);
                 // if there's a duration or pitch, make a note:
                 if (new_pitch_flag || dur_flag) {
-                    Alg_note *note_ptr = new Alg_note;
+                    auto *note_ptr = new Alg_note;
                     note_ptr->chan = voice;
                     note_ptr->time = time;
                     note_ptr->dur = dur;
@@ -371,14 +364,14 @@ bool Alg_reader::parse()
                         seq->set_real_dur(time + dur);
                     }
                 } else {
-                    int update_key = -1;
+                    long update_key = -1;
                     // key must appear explicitly; otherwise
                     //    update applies to channel
                     if (new_key_flag) {
                         update_key = key;
                     }
                     if (loud_flag) {
-                        Alg_update *new_upd = new Alg_update;
+                        auto *new_upd = new Alg_update;
                         new_upd->chan = voice;
                         new_upd->time = time;
                         new_upd->set_identifier(update_key);
@@ -391,7 +384,7 @@ bool Alg_reader::parse()
                     }
                     if (attributes) {
                         while (attributes) {
-                            Alg_update *new_upd = new Alg_update;
+                            auto *new_upd = new Alg_update;
                             new_upd->chan = voice;
                             new_upd->time = time;
                             new_upd->set_identifier(update_key);
@@ -518,12 +511,9 @@ void Alg_reader::parse_error(string &field, long offset, const char *message)
 }
 
 
-double duration_lookup[] = {0.25, 0.5, 1.0, 2.0, 4.0};
-
-
 double Alg_reader::parse_dur(string &field, double base)
 {
-    const char *msg = "Duration expected";
+    static const double duration_lookup[] = { 0.25, 0.5, 1.0, 2.0, 4.0 };
     const char *durs = "SIQHW";
     const char *p;
     int last;
@@ -542,7 +532,7 @@ double Alg_reader::parse_dur(string &field, double base)
         dur = duration_lookup[p - durs];
         last = 2;
     } else {
-        parse_error(field, 1, msg);
+        parse_error(field, 1, "Duration expected");
         return 0;
     }
     dur = parse_after_dur(dur, field, last, base);
@@ -580,17 +570,15 @@ double Alg_reader::parse_after_dur(double dur, string &field,
     return dur;
 }
 
-struct loud_lookup_struct {
-    const char *str;
-    int val;
-} loud_lookup[] = { {"FFF", 127}, {"FF", 120}, {"F", 110}, {"MF", 100},
-                    {"MP", 90}, {"P", 80}, {"PP", 70}, {"PPP", 60},
-                    {nullptr, 0} };
-
 
 double Alg_reader::parse_loud(string &field)
 {
-    const char *msg = "Loudness expected";
+    static const struct { const char *str; int val; } loud_lookup[] = {
+        { "FFF", 127 }, { "FF", 120 }, { "F" , 110 }, { "MF" , 100 },
+        { "MP" ,  90 }, { "P" ,  80 }, { "PP",  70 }, { "PPP",  60 },
+        { nullptr, 0 }
+    };
+
     if (isdigit(field[1])) {
         return parse_int(field);
     } else {
@@ -602,12 +590,10 @@ double Alg_reader::parse_loud(string &field)
             }
         }
     }
-    parse_error(field, 1, msg);
+
+    parse_error(field, 1, "Loudness expected");
     return 100.0;
 }
-
-
-int key_lookup[] = {21, 23, 12, 14, 16, 17, 19};
 
 
 // the field can be K<number> or K[A-G]<number> or P[A-G]<number>
@@ -616,9 +602,10 @@ int key_lookup[] = {21, 23, 12, 14, 16, 17, 19};
 //
 long Alg_reader::parse_key(string &field)
 {
-    const char *msg = "Pitch expected";
+    static const int key_lookup[] = { 21, 23, 12, 14, 16, 17, 19 };
     const char *pitches = "ABCDEFG";
     const char *p;
+
     if (isdigit(field[1])) {
         // This routine would not have been called if field = "P<number>"
         // so it must be "K<number>" so <number> must be an integer.
@@ -628,7 +615,8 @@ long Alg_reader::parse_key(string &field)
         key = parse_after_key(key, field, 2);
         return key;
     }
-    parse_error(field, 1, msg);
+
+    parse_error(field, 1, "Pitch expected");
     return 0;
 }
 
@@ -761,9 +749,6 @@ bool Alg_reader::check_type(char type_char, Alg_parameter *param)
     return param->attr_type() == type_char;
 }
 
-
-//duration_lookup = {"S": 0.5, "I": 0.5, "Q": 1, "H": 2, "W": 4}
-//key_lookup = {"C": 12, "D": 14, "E": 16, "F": 17, "G": 19, "A": 21, "B": 23}
 
 /*
 def test():

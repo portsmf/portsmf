@@ -8,17 +8,22 @@
 #include "strparse.h"
 #include "allegro.h"
 
-// Note about precision: %g prints 6 significant digits. For 1ms precision,
-// the maximum magnitude is 999.999, i.e. 1000s < 17minutes. For anything
-// over 1000s, time in seconds will be printed with 10ms precision, which
-// is not good. Therefore, times and durations are printed as %.4d, which
-// gives 100us precision.
-// The following define allows you to change this decision:
-/* #define TIMFMT "%.4d" */
+//! \def TIMPREC
+//! \brief The number of significant digits to output for time values.
+//!
+//! You may override this by defining `TIMPREC` when invoking CMake,
+//! replacing `N` with your desired number of significant digits:
+//!
+//! ```
+//! cmake -Bbuild -DCMAKE_CXX_FLAGS='-DTIMPREC=N'
+//! ```
+#ifndef TIMPREC
 #define TIMPREC 4
+#endif
 #define TIMFMT std::fixed << std::setprecision(TIMPREC)
 #define GFMT std::resetiosflags(std::ios::floatfield) << std::setprecision(6)
 
+namespace {
 void parameter_print(std::ostream &file, Alg_parameter *p)
 {
     file << " -" << p->attr_name() << ":";
@@ -45,7 +50,9 @@ void parameter_print(std::ostream &file, Alg_parameter *p)
         file << str;
         break;
     }
+    default: assert(false); // TODO C++23: std::unreachable()
     } /* switch (p->attr_type()) */
+}
 }
 
 Alg_event *Alg_seq::write_track_name(std::ostream &file, int n,
@@ -67,7 +74,7 @@ Alg_event *Alg_seq::write_track_name(std::ostream &file, int n,
             break;
         }
         if (ue->is_update()) {
-            Alg_update *u = (Alg_update*) ue;
+            auto *u = static_cast<Alg_update*>(ue);
             if (u->parameter.attr == attr) {
                 file << " " << u->parameter.s;
                 e = ue; // return the update event we found
@@ -75,7 +82,7 @@ Alg_event *Alg_seq::write_track_name(std::ostream &file, int n,
             }
         }
     }
-    file << std::endl; // end of line containing #track [<name>]
+    file << '\n'; // end of line containing #track [<name>]
     return e; // return parameter event with name if one was found
 }
 
@@ -88,7 +95,7 @@ void Alg_seq::write(std::ostream &file, bool in_secs, double offset)
     } else {
         convert_to_beats();
     }
-    file << "#offset " << offset << std::endl;
+    file << "#offset " << offset << '\n';
     Alg_event *update_to_skip = write_track_name(file, 0, track_list[0]);
     Alg_beats &beats = time_map->beats;
     for (i = 0; i < beats.len - 1; i++) {
@@ -157,7 +164,7 @@ void Alg_seq::write(std::ostream &file, bool in_secs, double offset)
             }
             // write the note or update data
             if (e->is_note()) {
-                Alg_note *n = (Alg_note*) e;
+                auto *n = static_cast<Alg_note*>(e);
                 double dur = n->dur;
                 file << " K" << n->get_identifier() <<
                         " P" << GFMT << n->pitch;
@@ -174,7 +181,7 @@ void Alg_seq::write(std::ostream &file, bool in_secs, double offset)
                 }
             } else { // an update
                 assert(e->is_update());
-                Alg_update *u = (Alg_update*) e;
+                auto *u = static_cast<Alg_update*>(e);
                 if (u->get_identifier() != -1) {
                     file << " K" << u->get_identifier();
                 }
