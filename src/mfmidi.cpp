@@ -3,23 +3,13 @@
 //! called upon recognizing things in the file.  See midifile(3).
 //!
 
-/*****************************************************************************
-*       Change Log
-*       Date    | who : Change
-*-----------+-----------------------------------------------------------------
-*  2-Mar-92 | GWL : created changelog; MIDIFILE_ERROR to satisfy compiler
-*****************************************************************************/
-
 #include <cassert>
 #include <cstring>
 #include <cstdio>
 #include "mfmidi.h"
 
-#define MIDIFILE_ERROR -1
-
 /* public stuff */
 extern int abort_flag;
-
 
 void Midifile_reader::midifile()
 {
@@ -39,10 +29,7 @@ void Midifile_reader::midifile()
     }
 }
 
-int Midifile_reader::readmt(const char *s, int skip)
-    /* read through the "MThd" or "MTrk" header string */
-    /* if skip == 1, we attempt to skip initial garbage. */
-{
+int Midifile_reader::readmt(const char *s, int skip) {
     assert(strlen(s) == 4); // must be "MThd" or "MTrk"
     int nread = 0;
     char b[4];
@@ -73,21 +60,19 @@ int Midifile_reader::readmt(const char *s, int skip)
         goto retry;
     }
     err:
-#if defined(_WIN32)
+#ifdef _MSC_VER
 #pragma warning(disable: 4996) // strcpy is safe since strings have known lengths
 #endif
     (void) strcpy(buff, errmsg);
     (void) strcat(buff, s);
-#if defined(_WIN32)
+#ifdef _MSC_VER
 #pragma warning(default: 4996) // turn it back on
 #endif
     mferror(buff);
-    return(0);
+    return 0;
 }
 
-int Midifile_reader::egetc()
-    /* read a single character and abort on EOF */
-{
+int Midifile_reader::egetc() {
     int c = Mf_getc();
 
     if (c == EOF) {
@@ -98,9 +83,9 @@ int Midifile_reader::egetc()
     return c;
 }
 
-int Midifile_reader::readheader()
-    /* read a header chunk */
-{
+
+int Midifile_reader::readheader() {
+    constexpr int MIDIFILE_ERROR = -1;
     int format, ntrks, division;
 
     if (readmt("MThd",Mf_skipinit) == EOF) {
@@ -133,9 +118,7 @@ int Midifile_reader::readheader()
     return ntrks;
 }
 
-void Midifile_reader::readtrack()
-    /* read a track chunk */
-{
+void Midifile_reader::readtrack() {
     /* This array is indexed by the high half of a status byte.  It's */
     /* value is either the number of bytes needed (1 or 2) for a channel */
     /* message, or 0 (meaning it's not  a channel message). */
@@ -301,17 +284,16 @@ void Midifile_reader::readtrack()
         } /* switch (c) */
     } /*  while (Mf_toberead > 0) */
     Mf_endtrack();
-    return;
 }
 
 void Midifile_reader::badbyte(int c)
 {
     char buff[32];
-#if defined(_WIN32)
+#ifdef _MSC_VER
 #pragma warning(disable: 4996) // safe in this case
 #endif
     (void) sprintf(buff,"unexpected byte: 0x%02x",c);
-#if defined(_WIN32)
+#ifdef _MSC_VER
 #pragma warning(default: 4996)
 #endif
     mferror(buff);
@@ -425,14 +407,12 @@ void Midifile_reader::chanmessage(int status, int c1, int c2)
         Mf_chanpressure(chan, c1);
         break;
     }
+    default: break; // Alg_midi_msg_type is non-exhaustive
     } /* switch (status & 0xf0) */
 }
 
-/* readvarinum - read a varying-length number, and return the */
-/* number of characters it took. */
 
-long Midifile_reader::readvarinum()
-{
+long Midifile_reader::readvarinum() {
     long value;
     int c;
 
@@ -518,20 +498,6 @@ void Midifile_reader::mferror(const char *s)
 /* arbitrary length.  The Msgbuff is expanded as necessary.  The only */
 /* visible data/routines are msginit(), msgadd(), msg(), msgleng(). */
 
-#define MSGINCREMENT 128
-
-Midifile_reader::Midifile_reader()
-{
-    Mf_nomerge = 0;
-    Mf_currtime = 0L;
-    Mf_skipinit = 0;
-    Mf_toberead = 0;
-
-    Msgbuff = nullptr;  /* message buffer */
-    Msgsize = 0;        /* Size of currently allocated Msg */
-    Msgindex = 0;       /* index of next available location in Msg */
-}
-
 void Midifile_reader::finalize()
 {
     if (Msgbuff) {
@@ -565,8 +531,8 @@ void Midifile_reader::msgadd(int c)
     Msgbuff[Msgindex++] = c;
 }
 
-void Midifile_reader::msgenlarge()
-{
+void Midifile_reader::msgenlarge() {
+    constexpr int MSGINCREMENT = 128;
     unsigned char *newmess;
     unsigned char *oldmess = Msgbuff;
     int oldleng = Msgsize;
